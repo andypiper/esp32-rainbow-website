@@ -9,6 +9,7 @@ export default function Home() {
         <img 
           src={ZXSpectrum48k} 
           alt="ZX Spectrum 48K" 
+          fetchpriority="high"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900"></div>
