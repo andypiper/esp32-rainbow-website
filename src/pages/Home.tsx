@@ -4,11 +4,11 @@ import heroMobile from '../assets/hero/mobile.webp'
 import heroTablet from '../assets/hero/tablet.webp'
 import heroDesktop from '../assets/hero/desktop.webp'
 import heroPlaceholder from '../assets/hero/placeholder.webp'
+import youtubeThumb from '../assets/2moCumkF3EM.webp'
 
 function YouTubeFacade() {
   const [showVideo, setShowVideo] = useState(false);
   const videoId = '2moCumkF3EM';
-  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
   if (showVideo) {
     return (
@@ -28,11 +28,13 @@ function YouTubeFacade() {
       className="relative w-full h-full group"
       aria-label="Play ESP32 Rainbow ZX Spectrum Demo Video"
     >
-      <img
-        src={thumbnailUrl}
-        alt="Video thumbnail"
-        className="w-full h-full object-cover rounded-xl shadow-lg"
+      <img 
+        src={youtubeThumb} 
+        alt="YouTube video thumbnail" 
+        width="1280" 
+        height="720"
         loading="lazy"
+        className="w-full h-full object-cover rounded-xl shadow-lg"
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:bg-red-700 transition-colors">
