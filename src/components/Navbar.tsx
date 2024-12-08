@@ -50,11 +50,14 @@ export default function Navbar() {
 
           {/* Desktop menu */}
           <div className="hidden md:flex space-x-8 items-center" role="menubar">
-            <Link to="/" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md" role="menuitem">
+            <Link to="/" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md px-3 py-2" role="menuitem">
               Home
             </Link>
-            <Link to="/faq" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md" role="menuitem">
+            <Link to="/faq" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md px-3 py-2" role="menuitem">
               FAQ
+            </Link>
+            <Link to="/docs" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md px-3 py-2" role="menuitem">
+              Docs
             </Link>
             <span className="text-gray-600 cursor-not-allowed flex items-center px-2 py-1" title="Coming Soon" role="menuitem">
               Machine
@@ -95,7 +98,7 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link 
               to="/" 
-              className="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-800"
               onClick={() => setIsOpen(false)}
               role="menuitem"
             >
@@ -103,11 +106,19 @@ export default function Navbar() {
             </Link>
             <Link 
               to="/faq" 
-              className="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-800"
               onClick={() => setIsOpen(false)}
               role="menuitem"
             >
               FAQ
+            </Link>
+            <Link 
+              to="/docs" 
+              className="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-800"
+              onClick={() => setIsOpen(false)}
+              role="menuitem"
+            >
+              Docs
             </Link>
             <span className="text-gray-600 cursor-not-allowed flex items-center px-3 py-2" title="Coming Soon" role="menuitem">
               Machine
