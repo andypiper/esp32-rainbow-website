@@ -5,6 +5,7 @@ import heroTablet from '../assets/hero/tablet.webp'
 import heroDesktop from '../assets/hero/desktop.webp'
 import heroPlaceholder from '../assets/hero/placeholder.webp'
 import youtubeThumb from '../assets/2moCumkF3EM.webp'
+import youtubeThumbMobile from '../assets/2moCumkF3EM-640.webp'
 
 function YouTubeFacade() {
   const [showVideo, setShowVideo] = useState(false);
@@ -30,10 +31,13 @@ function YouTubeFacade() {
     >
       <img 
         src={youtubeThumb} 
+        srcSet={`${youtubeThumbMobile} 640w, ${youtubeThumb} 1280w`}
+        sizes="(max-width: 768px) 640px, 1280px"
         alt="YouTube video thumbnail" 
         width="1280" 
         height="720"
         loading="lazy"
+        decoding="async"
         className="w-full h-full object-cover rounded-xl shadow-lg"
       />
       <div className="absolute inset-0 flex items-center justify-center">
