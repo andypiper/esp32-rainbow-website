@@ -5,6 +5,51 @@ import heroTablet from '../assets/hero/tablet.webp'
 import heroDesktop from '../assets/hero/desktop.webp'
 import heroPlaceholder from '../assets/hero/placeholder.webp'
 
+function YouTubeFacade() {
+  const [showVideo, setShowVideo] = useState(false);
+  const videoId = '2moCumkF3EM';
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+  if (showVideo) {
+    return (
+      <iframe
+        className="w-full h-full rounded-xl shadow-lg"
+        src={`https://www.youtube.com/embed/${videoId}`}
+        title="ESP32 Rainbow ZX Spectrum Demo Video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setShowVideo(true)}
+      className="relative w-full h-full group"
+      aria-label="Play ESP32 Rainbow ZX Spectrum Demo Video"
+    >
+      <img
+        src={thumbnailUrl}
+        alt="Video thumbnail"
+        className="w-full h-full object-cover rounded-xl shadow-lg"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:bg-red-700 transition-colors">
+          <svg
+            className="w-8 h-8 text-white ml-1"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+      </div>
+      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-xl" />
+    </button>
+  );
+}
+
 export default function Home() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -50,7 +95,6 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col items-center justify-center py-12">
-        {/* Remove the duplicated Hero Section and start directly with the buttons */}
         <div className="text-center max-w-4xl mx-auto px-4">
           <div className="mt-10 space-x-4">
             <Link
@@ -73,14 +117,7 @@ export default function Home() {
         {/* Video Section */}
         <div className="w-full max-w-4xl mx-auto mt-16 px-4">
           <div className="aspect-video w-full">
-            <iframe
-              className="w-full h-full rounded-xl shadow-lg"
-              src="https://www.youtube.com/embed/2moCumkF3EM"
-              title="ESP32 Rainbow ZX Spectrum Demo Video"
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <YouTubeFacade />
           </div>
         </div>
 
