@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import ZXSpectrum48k from '../assets/ZXSpectrum48k.png'
+import ZXSpectrum48k from '../assets/ZXSpectrum48k.webp'
 
 export default function Home() {
   return (
