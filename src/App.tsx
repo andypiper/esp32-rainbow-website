@@ -19,6 +19,22 @@ function App() {
             <title>ESP32 Rainbow - LED Controller</title>
             <meta name="description" content="Control your ESP32-powered LED strips with ease. Open-source hardware and software solution for creating beautiful LED lighting effects." />
             
+            {/* Content Security Policy */}
+            <meta httpEquiv="Content-Security-Policy" content={`
+              default-src 'self';
+              script-src 'self' 'unsafe-inline' 'unsafe-eval';
+              style-src 'self' 'unsafe-inline';
+              img-src 'self' data: https:;
+              font-src 'self';
+              connect-src 'self';
+              frame-src https://www.youtube.com;
+              object-src 'none';
+              base-uri 'self';
+              form-action 'self';
+              frame-ancestors 'none';
+              upgrade-insecure-requests;
+            `.replace(/\s+/g, ' ').trim()} />
+            
             {/* Preconnect to external domains */}
             <link rel="preconnect" href="https://www.youtube.com" />
             <link rel="preconnect" href="https://www.crowdsupply.com" />
