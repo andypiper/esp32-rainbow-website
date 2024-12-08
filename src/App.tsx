@@ -33,12 +33,17 @@ function App() {
               form-action 'self';
               frame-ancestors 'none';
               upgrade-insecure-requests;
+              require-trusted-types-for 'script';
+              trusted-types 'none';
             `.replace(/\s+/g, ' ').trim()} />
             
             {/* Preconnect to external domains */}
             <link rel="preconnect" href="https://www.youtube.com" />
             <link rel="preconnect" href="https://www.crowdsupply.com" />
             <link rel="preconnect" href="https://www.patreon.com" />
+
+            {/* Preload LCP image */}
+            <link rel="preload" href="/assets/ZXSpectrum48k.webp" as="image" type="image/webp" fetchPriority="high" />
 
             {/* JSON-LD structured data */}
             <script type="application/ld+json">
