@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-import { Z80, Memory, Port } from 'z80js'
-
+// import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+// import { Z80, Memory, Port } from 'z80js'
+/*
 interface Z80ContextType {
   cpu: Z80 | null
   memory: Memory | null
@@ -53,4 +53,4 @@ export function useZ80() {
     throw new Error('useZ80 must be used within a Z80Provider')
   }
   return context
-} 
+} */
