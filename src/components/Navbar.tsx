@@ -8,14 +8,31 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700 shadow-lg" role="navigation" aria-label="Main navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="text-indigo-400 hover:text-indigo-300 font-bold text-xl" aria-label="ESP32 Rainbow Home">
+          <Link 
+            to="/" 
+            className="text-indigo-400 hover:text-indigo-300 font-bold text-xl flex items-center whitespace-nowrap" 
+            aria-label="ESP32 Rainbow Home"
+          >
+            <svg 
+              className="w-6 h-6 mr-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+              />
+            </svg>
             ESP32 Rainbow
           </Link>
           
           {/* Hamburger menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="[&]:min-[1000px]:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle navigation menu"
@@ -49,7 +66,7 @@ export default function Navbar() {
           </button>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex space-x-8 items-center" role="menubar">
+          <div className="hidden min-[1000px]:flex space-x-8 items-center" role="menubar">
             <Link to="/" className="text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md px-3 py-2" role="menuitem">
               Home
             </Link>
@@ -98,7 +115,7 @@ export default function Navbar() {
           className={`
             transform transition-all duration-300 ease-in-out
             ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
-            md:hidden overflow-hidden
+            min-[1000px]:hidden overflow-hidden
           `}
           style={{
             maxHeight: isOpen ? '400px' : '0px',
