@@ -18,12 +18,18 @@ export default function Navbar() {
             <Link to="/faq" className="text-gray-300 hover:text-indigo-400">
               FAQ
             </Link>
-            <Link to="/machine" className="text-gray-300 hover:text-indigo-400">
+            <span className="text-gray-600 cursor-not-allowed flex items-center" title="Coming Soon">
               Machine
-            </Link>
-            <Link to="/firmware" className="text-gray-300 hover:text-indigo-400">
+              <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            </span>
+            <span className="text-gray-600 cursor-not-allowed flex items-center" title="Coming Soon">
               Firmware
-            </Link>
+              <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            </span>
             <div 
               className="relative group"
             >

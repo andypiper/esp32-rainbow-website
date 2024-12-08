@@ -6,6 +6,7 @@ import FAQ from './pages/FAQ'
 import Connect from './pages/Connect'
 import Machine from './pages/Debug'
 import Firmware from './pages/Firmware'
+import Docs from './pages/Docs'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/faq" element={<FAQ />} />
+              <Route path="/docs" element={<Docs />} />
               <Route path="/connect" element={<Connect />} />
               <Route path="/machine" element={<Machine />} />
               <Route path="/firmware" element={<Firmware />} />
