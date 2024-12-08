@@ -29,10 +29,12 @@ export default function Home() {
         <div className="text-center max-w-4xl mx-auto px-4">
           <div className="mt-10 space-x-4">
             <Link
-              to="/buy"
+              to="https://www.crowdsupply.com/atomic14/esp32-rainbow"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
             >
-              Pre-order Now
+              Buy Now
             </Link>
             <Link
               to="/docs"

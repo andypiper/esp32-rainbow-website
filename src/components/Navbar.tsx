@@ -18,6 +18,9 @@ export default function Navbar() {
             <Link to="/machine" className="text-gray-300 hover:text-indigo-400">
               Machine
             </Link>
+            <Link to="/firmware" className="text-gray-300 hover:text-indigo-400">
+              Firmware
+            </Link>
           </div>
         </div>
       </div>
