@@ -7,6 +7,7 @@ import Connect from './pages/Connect'
 import Machine from './pages/Debug'
 import Firmware from './pages/Firmware'
 import Docs from './pages/Docs'
+import GitHub from './pages/GitHub'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
                   <h1 className="text-4xl font-bold text-gray-100">Settings</h1>
                 </div>
               } />
+              <Route path="/github" element={<GitHub />} />
               <Route path="*" element={
                 <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
                   <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>
