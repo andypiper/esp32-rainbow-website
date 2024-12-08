@@ -88,21 +88,23 @@ export default function Home() {
           onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900"></div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-shadow-strong">
-            <span className="block text-indigo-100">ESP32 Rainbow</span>
-            <span className="block mt-1 text-indigo-200">ZX Spectrum Reborn</span>
-          </h1>
-          <p className="mt-6 text-xl text-shadow-strong text-gray-100 max-w-3xl px-4">
-            A modern recreation of the Sinclair ZX Spectrum, bringing this classic 1982 computer back to life
-            with cutting-edge technology and a beautiful touch keyboard.
-          </p>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-full px-4 sm:px-6 md:px-8 max-w-4xl mx-auto text-center text-white">
+            <div className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-shadow-strong flex flex-col items-center">
+              <span className="inline-block text-indigo-100 leading-tight">ESP32 Rainbow</span>
+              <span className="inline-block text-indigo-200 leading-tight">ZX Spectrum Reborn</span>
+            </div>
+            <p className="mt-6 text-xl text-shadow-strong text-gray-100">
+              A modern recreation of the Sinclair ZX Spectrum, bringing this classic 1982 computer back to life
+              with cutting-edge technology and a beautiful touch keyboard.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-8">
         <div className="text-center max-w-4xl mx-auto px-4">
-          <div className="mt-10 space-x-4">
+          <div className="space-x-4">
             <Link
               to="https://www.crowdsupply.com/atomic14/esp32-rainbow"
               target="_blank"
