@@ -1,16 +1,40 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import ZXSpectrum48k from '../assets/ZXSpectrum48k.webp'
+import heroMobile from '../assets/hero/mobile.webp'
+import heroTablet from '../assets/hero/tablet.webp'
+import heroDesktop from '../assets/hero/desktop.webp'
+import heroPlaceholder from '../assets/hero/placeholder.webp'
 
 export default function Home() {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    // Preload the hero image
+    const img = new Image();
+    img.src = window.innerWidth < 768 ? heroMobile : 
+              window.innerWidth < 1280 ? heroTablet : 
+              heroDesktop;
+    img.onload = () => setImageLoaded(true);
+  }, []);
+
   return (
     <div className="flex flex-col">
       {/* Banner Image */}
       <div className="w-full h-[300px] relative overflow-hidden">
         <img 
-          src={ZXSpectrum48k} 
+          src={heroPlaceholder}
+          className={`w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-0' : 'opacity-100'} absolute inset-0`}
+          alt="ZX Spectrum 48K Placeholder"
+          aria-hidden="true"
+        />
+        <img 
+          srcSet={`${heroMobile} 640w, ${heroTablet} 1280w, ${heroDesktop} 1920w`}
+          sizes="100vw"
+          src={heroDesktop}
           alt="ZX Spectrum 48K" 
           fetchPriority="high"
-          className="w-full h-full object-cover object-center"
+          className={`w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900"></div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10">

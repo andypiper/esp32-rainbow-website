@@ -9,6 +9,25 @@
     <link rel="manifest" href="site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ESP32 Rainbow</title>
+    <!-- Preload hero images -->
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/hero/mobile.webp"
+      media="(max-width: 767px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/hero/tablet.webp"
+      media="(min-width: 768px) and (max-width: 1279px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/hero/desktop.webp"
+      media="(min-width: 1280px)"
+    />
   </head>
   <body>
     <div id="root"></div>
