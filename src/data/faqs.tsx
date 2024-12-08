@@ -85,5 +85,22 @@ export const faqs: FAQ[] = [
   {
     question: "How is it manufactured?",
     answer: "The PCBs are manufactured and assembled by PCBWay in China, with final assembly and comprehensive testing performed in the UK. Distribution is handled by Mouser Electronics through Crowd Supply's fulfillment service."
+  },
+  {
+    question: "How can I stay updated on ESP32 Rainbow developments?",
+    answer: (
+      <div>
+        The best way to stay updated is to subscribe to our newsletter at{' '}
+        <a 
+          href="https://esp32zx.substack.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300"
+        >
+          esp32zx.substack.com
+        </a>
+        . We regularly share development updates, new features, and community highlights.
+      </div>
+    )
   }
 ] 
