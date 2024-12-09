@@ -17,14 +17,6 @@ function App() {
             <title>ESP32 Rainbow - LED Controller</title>
             <meta name="description" content="Control your ESP32-powered LED strips with ease. Open-source hardware and software solution for creating beautiful LED lighting effects." />
             
-            {/* Preconnect to external domains */}
-            <link rel="preconnect" href="https://www.youtube.com" />
-            <link rel="preconnect" href="https://www.crowdsupply.com" />
-            <link rel="preconnect" href="https://www.patreon.com" />
-
-            {/* Preload LCP image */}
-            <link rel="preload" href="/assets/ZXSpectrum48k.webp" as="image" type="image/webp" fetchPriority="high" />
-
             {/* JSON-LD structured data */}
             <script type="application/ld+json">
               {JSON.stringify({
