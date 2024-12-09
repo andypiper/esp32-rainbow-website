@@ -5,8 +5,8 @@ interface SerialContextType {
   connected: boolean
   connecting: boolean
   connect: () => Promise<void>
-  disconnect: () => Promise<void>
-  error: string | null
+  disconnect: () => void
+  isSupported: boolean
 }
 
 const SerialContext = createContext<SerialContextType | undefined>(undefined)
@@ -15,12 +15,11 @@ export function SerialProvider({ children }: { children: ReactNode }) {
   const [port, setPort] = useState<SerialPort | null>(null)
   const [connected, setConnected] = useState(false)
   const [connecting, setConnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const isSupported = typeof navigator !== 'undefined' && 'serial' in navigator
 
   const connect = useCallback(async () => {
     try {
       setConnecting(true)
-      setError(null)
 
       // Request port and open it
       const port = await navigator.serial.requestPort()
@@ -55,7 +54,7 @@ export function SerialProvider({ children }: { children: ReactNode }) {
         connecting, 
         connect, 
         disconnect, 
-        error 
+        isSupported 
       }}
     >
       {children}

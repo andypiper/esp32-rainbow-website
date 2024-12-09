@@ -1,43 +1,38 @@
 import { useState } from 'react'
 import { useSerial } from '../contexts/SerialContext'
-
-interface FirmwareOption {
-  name: string
-  version: string
-  description: string
-  url: string
-}
-
-const AVAILABLE_FIRMWARE: FirmwareOption[] = [
-  {
-    name: 'ESP32 Rainbow',
-    version: '1.0.0',
-    description: 'Initial release with ZX Spectrum emulation',
-    url: '/firmware/esp32-rainbow-1.0.0.bin'
-  },
-  {
-    name: 'ESP32 Rainbow',
-    version: '1.0.1',
-    description: 'Bug fixes and performance improvements',
-    url: '/firmware/esp32-rainbow-1.0.1.bin'
-  },
-  // Add more firmware versions here
-]
+import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
 
 export default function Firmware() {
-  const { connected, connecting, connect, disconnect } = useSerial()
-  const [selectedFirmware, setSelectedFirmware] = useState<string>('')
+  const { connected, connecting, connect, disconnect, isSupported } = useSerial()
+  const [selectedBoard, setSelectedBoard] = useState<BoardType | ''>('')
+  const [selectedVersion, setSelectedVersion] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
+  const availableVersions = AVAILABLE_FIRMWARE.filter(
+    fw => !selectedBoard || fw.board === selectedBoard
+  )
+
+  const selectedFirmware = AVAILABLE_FIRMWARE.find(
+    fw => fw.board === selectedBoard && fw.version === selectedVersion
+  )
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFirmware || !connected) return
+    if (!selectedFirmware) return
 
     try {
       setStatus('uploading')
       setUploadProgress(0)
+      
+      if (!connected) {
+        try {
+          await connect()
+        } catch (err) {
+          throw new Error('Failed to connect to device. Make sure it is in firmware upload mode.')
+        }
+      }
       
       // TODO: Implement actual firmware upload logic here
       
@@ -52,40 +47,30 @@ export default function Firmware() {
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-gray-100 mb-8">Firmware Update</h1>
 
-      <div className="bg-gray-800 rounded-lg p-6">
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-100 mb-2">Connection Status</h2>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-300">
-              {connected ? 'Connected to device' : 'Not connected'}
-            </span>
-            <button
-              onClick={connected ? disconnect : connect}
-              disabled={connecting}
-              className={`
-                px-4 py-2 rounded font-medium text-sm
-                ${connecting ? 'bg-gray-700 text-gray-400 cursor-not-allowed' :
-                  connected ? 'bg-red-600 hover:bg-red-700 text-white' :
-                  'bg-indigo-600 hover:bg-indigo-700 text-white'}
-                transition-colors duration-150
-              `}
-            >
-              {connecting ? 'Connecting...' :
-               connected ? 'Disconnect' :
-               'Connect'}
-            </button>
-          </div>
+      {!isSupported && (
+        <div className="mb-8 bg-red-900/30 border border-red-700 rounded-lg p-4 text-gray-100">
+          <h2 className="text-sm font-semibold mb-2">Browser Not Supported</h2>
+          <p className="text-sm mb-2">
+            Your browser doesn't support Web Serial, which is required for firmware updates.
+            Please use Chrome, Edge, or Opera to update your firmware.
+          </p>
+          <p className="text-xs text-gray-400">
+            Firefox and Safari currently do not support Web Serial.
+          </p>
         </div>
+      )}
 
+      <div className="bg-gray-800 rounded-lg p-6">
         <form onSubmit={handleUpload} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Select Firmware Version
+              Select Board Type
             </label>
             <select
-              value={selectedFirmware}
+              value={selectedBoard}
               onChange={(e) => {
-                setSelectedFirmware(e.target.value)
+                setSelectedBoard(e.target.value as BoardType)
+                setSelectedVersion('')
                 setStatus('idle')
                 setErrorMessage('')
               }}
@@ -95,25 +80,61 @@ export default function Firmware() {
                 appearance-none
                 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
                 bg-no-repeat bg-[center_right_1rem]
-                cursor-pointer"
+                cursor-pointer
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="" className="text-gray-400">Select a version...</option>
-              {AVAILABLE_FIRMWARE.map((fw) => (
-                <option key={fw.url} value={fw.url} className="text-gray-100 bg-gray-800">
-                  {fw.name} v{fw.version}
-                </option>
+              <option value="">Select a board...</option>
+              {BOARD_TYPES.map(board => (
+                <option key={board} value={board}>{board}</option>
               ))}
             </select>
           </div>
 
+          {selectedBoard && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Select Firmware Version
+              </label>
+              <select
+                value={selectedVersion}
+                onChange={(e) => {
+                  setSelectedVersion(e.target.value)
+                  setStatus('idle')
+                  setErrorMessage('')
+                }}
+                className="w-full bg-gray-900 text-gray-100 px-4 py-2.5 rounded-lg 
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  border border-gray-700 hover:border-gray-600
+                  appearance-none
+                  bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
+                  bg-no-repeat bg-[center_right_1rem]
+                  cursor-pointer
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Select a version...</option>
+                {availableVersions.map((fw) => (
+                  <option key={`${fw.board}-${fw.version}`} value={fw.version}>
+                    v{fw.version}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {selectedFirmware && (
             <div className="bg-gray-900 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-300 mb-2">Version Details</h3>
-              {AVAILABLE_FIRMWARE.find(fw => fw.url === selectedFirmware) && (
-                <div className="text-sm text-gray-400">
-                  <p>{AVAILABLE_FIRMWARE.find(fw => fw.url === selectedFirmware)?.description}</p>
+              <div className="text-sm text-gray-400">
+                <p>{selectedFirmware.description}</p>
+                <div className="mt-3 space-y-1">
+                  <p className="text-gray-300">Files to be flashed:</p>
+                  {selectedFirmware.files.map((file, index) => (
+                    <p key={index} className="pl-4">
+                      • {file.path.split('/').pop()} at {file.address}
+                    </p>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -146,13 +167,15 @@ export default function Firmware() {
 
           <button
             type="submit"
-            disabled={!connected || !selectedFirmware || status === 'uploading'}
+            disabled={!isSupported || !selectedFirmware || status === 'uploading'}
             className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md
               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
               disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed
               transition-colors duration-150"
           >
-            Upload Firmware
+            {!isSupported ? 'Browser Not Supported' : 
+             status === 'uploading' ? 'Uploading...' : 
+             'Upload Firmware'}
           </button>
         </form>
       </div>
@@ -169,7 +192,6 @@ export default function Firmware() {
               <li>Release the BOOT button</li>
             </ol>
           </li>
-          <li>Click the Connect button above</li>
           <li>Select the firmware version to install</li>
           <li>Click Upload Firmware</li>
           <li>Wait for the upload to complete</li>
