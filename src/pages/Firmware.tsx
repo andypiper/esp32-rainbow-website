@@ -1,6 +1,23 @@
 import { useState } from 'react'
 import { useSerial } from '../contexts/SerialContext'
 import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
+import { ESPLoader, FlashOptions } from 'esptool-js'
+import CryptoJS from 'crypto-js'
+
+const firmwareFiles = {
+  latest: {
+    bootloader: '/firmware/latest/bootloader.bin',
+    partitionTable: '/firmware/latest/partition-table.bin',
+    firmware: '/firmware/latest/firmware.bin'
+  },
+  versions: {
+    'v1.0.0': {
+      bootloader: '/firmware/versions/v1.0.0/bootloader.bin',
+      partitionTable: '/firmware/versions/v1.0.0/partition-table.bin',
+      firmware: '/firmware/versions/v1.0.0/firmware.bin'
+    }
+  }
+}
 
 export default function Firmware() {
   const { connected, connecting, connect, disconnect, isSupported } = useSerial()
@@ -33,8 +50,54 @@ export default function Firmware() {
           throw new Error('Failed to connect to device. Make sure it is in firmware upload mode.')
         }
       }
-      
-      // TODO: Implement actual firmware upload logic here
+
+      // Initialize ESPLoader
+      const esploader = new ESPLoader({
+        transport: port,
+        baudrate: 115200,
+        terminal: {
+          clean: () => {},
+          writeLine: (data: string) => console.log(data),
+          write: (data: string) => console.log(data)
+        }
+      })
+
+      // Connect to the chip
+      await esploader.main()
+
+      // Prepare file array for flashing
+      const fileArray = selectedFirmware.files.map(file => ({
+        data: '', // We'll need to fetch the binary data
+        address: parseInt(file.address)
+      }))
+
+      // Fetch all firmware files
+      await Promise.all(
+        selectedFirmware.files.map(async (file, index) => {
+          const response = await fetch(file.path)
+          const arrayBuffer = await response.arrayBuffer()
+          fileArray[index].data = String.fromCharCode(...new Uint8Array(arrayBuffer))
+        })
+      )
+
+      // Flash the firmware
+      const flashOptions: FlashOptions = {
+        fileArray,
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (fileIndex, written, total) => {
+          // Calculate overall progress across all files
+          const filesProgress = fileArray.map((_, idx) => 
+            idx === fileIndex ? (written / total) : (idx < fileIndex ? 100 : 0)
+          )
+          const overallProgress = filesProgress.reduce((a, b) => a + b) / filesProgress.length
+          setUploadProgress(Math.round(overallProgress))
+        },
+        calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image))
+      }
+
+      await esploader.writeFlash(flashOptions)
       
       setStatus('success')
     } catch (err) {
