@@ -6,6 +6,7 @@ import FAQ from './pages/FAQ'
 import Firmware from './pages/Firmware'
 import Docs from './pages/Docs'
 import GitHub from './pages/GitHub'
+import Emulator from './pages/Emulator'
 import { Helmet } from 'react-helmet'
 
 function App() {
@@ -49,11 +50,7 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/docs" element={<Docs />} />
               <Route path="/firmware" element={<Firmware />} />
-              <Route path="/settings" element={
-                <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-                  <h1 className="text-4xl font-bold text-gray-100">Settings</h1>
-                </div>
-              } />
+              <Route path="/emulator" element={<Emulator />} />
               <Route path="/github" element={<GitHub />} />
               <Route path="*" element={
                 <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
