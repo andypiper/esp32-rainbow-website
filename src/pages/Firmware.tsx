@@ -96,7 +96,8 @@ export default function Firmware() {
         flashSize: "keep",
         eraseAll: false,
         compress: true,
-        debugLogging: false,
+        flashMode: 'qio',
+        flashFreq: '40m',
         reportProgress: (fileIndex, written, total) => {
           const fileProgress = (written / total);
           const overallProgress = 100 * (fileIndex / fileArray.length + fileProgress / fileArray.length);
