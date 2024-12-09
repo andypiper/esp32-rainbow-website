@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useSerial } from '../contexts/SerialContext'
 import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
-import { ESPLoader, FlashOptions, LoaderOptions } from 'esptool-js'
+import { ESPLoader, FlashOptions, LoaderOptions, Transport, IEspLoaderTerminal } from 'esptool-js'
 import CryptoJS from 'crypto-js'
-
 
 interface FirmwareFile {
   data: string;
@@ -11,12 +10,13 @@ interface FirmwareFile {
 }
 
 export default function Firmware() {
-  const { connected, connect, isSupported, port } = useSerial()
+  const { isSupported } = useSerial()
   const [selectedBoard, setSelectedBoard] = useState<BoardType | ''>('')
   const [selectedVersion, setSelectedVersion] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [chip, setChip] = useState<string | null>(null)
 
   const availableVersions = AVAILABLE_FIRMWARE.filter(
     fw => !selectedBoard || fw.board === selectedBoard
@@ -30,36 +30,40 @@ export default function Firmware() {
     e.preventDefault()
     if (!selectedFirmware) return
 
+    class Terminal implements IEspLoaderTerminal {
+      write(data: string): void {
+        console.log(data)
+      }
+      clean(): void {
+        console.log("Cleaning terminal")
+      }
+      writeLine(data: string): void {
+        console.log(data)
+      }
+    }
+
+    const terminal = new Terminal();
+
+    let transport: Transport | null = null;
+    let port: SerialPort | null = null;
     try {
       setStatus('uploading')
       setUploadProgress(0)
-      
-      // Always try to connect first
-      if (!connected) {
-        try {
-          await connect()
-        } catch (err) {
-          throw new Error('Failed to connect to device. Please make sure it is in firmware upload mode and try again.')
-        }
-      }
+      // Create transport from serial port
+      port = await navigator.serial.requestPort()
+      transport = new Transport(port, false);
 
-      if (!port) {
-        throw new Error('No serial connection available. Please try reconnecting the device.')
-      }
-
-      // Initialize ESPLoader with required options
-      const loaderOptions: LoaderOptions = {
-        transport: port,
+      const loaderOptions = {
+        transport,
         baudrate: 115200,
-        romBaudrate: 115200,
-        debugLogging: false
-      }
-
-      const esploader = new ESPLoader(loaderOptions)
+        debugLogging: false,
+        terminal,
+      } as LoaderOptions;
+      const esploader = new ESPLoader(loaderOptions);
 
       // Connect and identify chip
-      const chipType = await esploader.main()
-      console.log("Connected to chip:", chipType)
+      const chip = await esploader.main()
+      setChip(chip);
 
       // Prepare file array for flashing
       const fileArray: FirmwareFile[] = []
@@ -67,26 +71,35 @@ export default function Firmware() {
       // Fetch all firmware files
       for (const file of selectedFirmware.files) {
         const response = await fetch(file.path)
-        const arrayBuffer = await response.arrayBuffer()
+        // check if the response is ok
+        if (!response.ok) {
+          throw new Error(`Failed to fetch file: ${file.path}`)
+        }
+        const arrayBuffer = new Uint8Array(await response.arrayBuffer());
+        console.log("File: ", file.path);
+        console.log("Will send ", arrayBuffer.length, " bytes");
+        // Convert arrayBuffer to string in chunks
+        let data = '';
+        const CHUNK_SIZE = 65536; // Process 64KB at a time
+        for (let i = 0; i < arrayBuffer.length; i += CHUNK_SIZE) {
+            const chunk = arrayBuffer.subarray(i, i + CHUNK_SIZE);
+            data += String.fromCharCode(...chunk);
+        }
         fileArray.push({
-          data: String.fromCharCode(...new Uint8Array(arrayBuffer)),
+          data,
           address: parseInt(file.address, 16)
         })
       }
-
       // Flash the firmware
       const flashOptions: FlashOptions = {
         fileArray,
         flashSize: "keep",
-        flashMode: "dio",
-        flashFreq: "40m",
         eraseAll: false,
         compress: true,
+        debugLogging: false,
         reportProgress: (fileIndex, written, total) => {
-          const filesProgress = fileArray.map((_, idx) => 
-            idx === fileIndex ? (written / total) : (idx < fileIndex ? 100 : 0)
-          )
-          const overallProgress = filesProgress.reduce((a, b) => a + b) / filesProgress.length
+          const fileProgress = (written / total);
+          const overallProgress = 100 * (fileIndex / fileArray.length + fileProgress / fileArray.length);
           setUploadProgress(Math.round(overallProgress))
         },
         calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image)).toString()
@@ -102,6 +115,18 @@ export default function Firmware() {
       console.error(err)
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Failed to upload firmware')
+    } finally {
+      // disconnect the transport
+      console.log("Disconnecting transport")
+      if (transport) {
+        await transport.disconnect();
+      }
+      console.log("Closing port")
+      if (port) {
+        if (port.readable) {
+          await port.close();
+        }
+      }
     }
   }
 
@@ -221,6 +246,12 @@ export default function Firmware() {
             </div>
           )}
 
+          { chip && (
+            <div className="text-gray-300 bg-gray-900/30 border border-gray-700 rounded-md p-3">
+              Connected to chip: {chip}
+            </div>
+          )}
+
           {status === 'success' && (
             <div className="text-green-400 bg-green-900/30 border border-green-700 rounded-md p-3">
               Firmware updated successfully! The device will restart automatically.
@@ -242,7 +273,6 @@ export default function Firmware() {
             {!isSupported ? 'Browser Not Supported' : 
              !selectedFirmware ? 'Select Firmware Version' :
              status === 'uploading' ? `Uploading... ${uploadProgress}%` : 
-             connected ? 'Upload Firmware' : 
              'Connect and Upload'}
           </button>
         </form>

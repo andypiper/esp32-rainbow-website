@@ -3,8 +3,6 @@ import { SerialProvider } from './contexts/SerialContext'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import FAQ from './pages/FAQ'
-import Connect from './pages/Connect'
-import Machine from './pages/Debug'
 import Firmware from './pages/Firmware'
 import Docs from './pages/Docs'
 import GitHub from './pages/GitHub'
@@ -58,8 +56,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/docs" element={<Docs />} />
-              <Route path="/connect" element={<Connect />} />
-              <Route path="/machine" element={<Machine />} />
               <Route path="/firmware" element={<Firmware />} />
               <Route path="/settings" element={
                 <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">

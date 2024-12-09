@@ -67,7 +67,7 @@ export const AVAILABLE_FIRMWARE: FirmwareOption[] = FIRMWARE_RELEASES.flatMap(re
         },
         { 
           address: addresses.partition,
-          path: `/firmware/${slug}/v${release.version}/partition.bin` 
+          path: `/firmware/${slug}/v${release.version}/partitions.bin` 
         },
         { 
           address: addresses.firmware,
