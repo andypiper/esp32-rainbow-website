@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 
 type NavItem = {
@@ -92,9 +92,13 @@ interface NavItemProps extends NavItem {
 }
 
 function NavItem({ to, label, icon, external, mobile, onClick }: NavItemProps) {
+  const location = useLocation()
+  const isActive = location.pathname === to
+  
   const baseClasses = "text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md flex items-center"
   const mobileClasses = mobile ? "block px-3 py-2 text-base font-medium focus:ring-offset-2 focus:ring-offset-gray-800" : "px-3 py-2"
-  const classes = `${baseClasses} ${mobileClasses}`
+  const activeClasses = isActive ? "text-indigo-400 bg-gray-700" : ""
+  const classes = `${baseClasses} ${mobileClasses} ${activeClasses}`
 
   const linkProps = external ? {
     target: "_blank",
@@ -107,6 +111,7 @@ function NavItem({ to, label, icon, external, mobile, onClick }: NavItemProps) {
       className={classes}
       onClick={onClick}
       role="menuitem"
+      aria-current={isActive ? 'page' : undefined}
       {...linkProps}
     >
       <svg 
