@@ -1,26 +1,17 @@
 import { useState } from 'react'
 import { useSerial } from '../contexts/SerialContext'
 import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
-import { ESPLoader, FlashOptions } from 'esptool-js'
+import { ESPLoader, FlashOptions, LoaderOptions } from 'esptool-js'
 import CryptoJS from 'crypto-js'
 
-const firmwareFiles = {
-  latest: {
-    bootloader: '/firmware/latest/bootloader.bin',
-    partitionTable: '/firmware/latest/partition-table.bin',
-    firmware: '/firmware/latest/firmware.bin'
-  },
-  versions: {
-    'v1.0.0': {
-      bootloader: '/firmware/versions/v1.0.0/bootloader.bin',
-      partitionTable: '/firmware/versions/v1.0.0/partition-table.bin',
-      firmware: '/firmware/versions/v1.0.0/firmware.bin'
-    }
-  }
+
+interface FirmwareFile {
+  data: string;
+  address: number;
 }
 
 export default function Firmware() {
-  const { connected, connecting, connect, disconnect, isSupported } = useSerial()
+  const { connected, connect, isSupported, port } = useSerial()
   const [selectedBoard, setSelectedBoard] = useState<BoardType | ''>('')
   const [selectedVersion, setSelectedVersion] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -43,64 +34,72 @@ export default function Firmware() {
       setStatus('uploading')
       setUploadProgress(0)
       
+      // Always try to connect first
       if (!connected) {
         try {
           await connect()
         } catch (err) {
-          throw new Error('Failed to connect to device. Make sure it is in firmware upload mode.')
+          throw new Error('Failed to connect to device. Please make sure it is in firmware upload mode and try again.')
         }
       }
 
-      // Initialize ESPLoader
-      const esploader = new ESPLoader({
+      if (!port) {
+        throw new Error('No serial connection available. Please try reconnecting the device.')
+      }
+
+      // Initialize ESPLoader with required options
+      const loaderOptions: LoaderOptions = {
         transport: port,
         baudrate: 115200,
-        terminal: {
-          clean: () => {},
-          writeLine: (data: string) => console.log(data),
-          write: (data: string) => console.log(data)
-        }
-      })
+        romBaudrate: 115200,
+        debugLogging: false
+      }
 
-      // Connect to the chip
-      await esploader.main()
+      const esploader = new ESPLoader(loaderOptions)
+
+      // Connect and identify chip
+      const chipType = await esploader.main()
+      console.log("Connected to chip:", chipType)
 
       // Prepare file array for flashing
-      const fileArray = selectedFirmware.files.map(file => ({
-        data: '', // We'll need to fetch the binary data
-        address: parseInt(file.address)
-      }))
-
+      const fileArray: FirmwareFile[] = []
+      
       // Fetch all firmware files
-      await Promise.all(
-        selectedFirmware.files.map(async (file, index) => {
-          const response = await fetch(file.path)
-          const arrayBuffer = await response.arrayBuffer()
-          fileArray[index].data = String.fromCharCode(...new Uint8Array(arrayBuffer))
+      for (const file of selectedFirmware.files) {
+        const response = await fetch(file.path)
+        const arrayBuffer = await response.arrayBuffer()
+        fileArray.push({
+          data: String.fromCharCode(...new Uint8Array(arrayBuffer)),
+          address: parseInt(file.address, 16)
         })
-      )
+      }
 
       // Flash the firmware
       const flashOptions: FlashOptions = {
         fileArray,
         flashSize: "keep",
+        flashMode: "dio",
+        flashFreq: "40m",
         eraseAll: false,
         compress: true,
         reportProgress: (fileIndex, written, total) => {
-          // Calculate overall progress across all files
           const filesProgress = fileArray.map((_, idx) => 
             idx === fileIndex ? (written / total) : (idx < fileIndex ? 100 : 0)
           )
           const overallProgress = filesProgress.reduce((a, b) => a + b) / filesProgress.length
           setUploadProgress(Math.round(overallProgress))
         },
-        calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image))
+        calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image)).toString()
       }
 
       await esploader.writeFlash(flashOptions)
       
+      // Reset the device after flashing
+      await esploader.hardReset()
+      
       setStatus('success')
     } catch (err) {
+      console.error(err)
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Failed to upload firmware')
     }
@@ -230,15 +229,21 @@ export default function Firmware() {
 
           <button
             type="submit"
-            disabled={!isSupported || !selectedFirmware || status === 'uploading'}
+            disabled={
+              !isSupported || 
+              !selectedFirmware || 
+              status === 'uploading'
+            }
             className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md
               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
               disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed
               transition-colors duration-150"
           >
             {!isSupported ? 'Browser Not Supported' : 
-             status === 'uploading' ? 'Uploading...' : 
-             'Upload Firmware'}
+             !selectedFirmware ? 'Select Firmware Version' :
+             status === 'uploading' ? `Uploading... ${uploadProgress}%` : 
+             connected ? 'Upload Firmware' : 
+             'Connect and Upload'}
           </button>
         </form>
       </div>
