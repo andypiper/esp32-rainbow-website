@@ -83,7 +83,6 @@ export default function Home() {
           sizes="100vw"
           src={heroDesktop}
           alt="ZX Spectrum 48K" 
-          fetchPriority="high"
           className={`w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImageLoaded(true)}
         />
