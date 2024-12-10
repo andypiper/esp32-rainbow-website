@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 
 // Add screen size hook
@@ -38,63 +38,12 @@ declare global {
   }
 }
 
-// Add these keyboard mappings
-const SPECTRUM_KEYS = {
-  numbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-  topRow: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-  middleRow: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'Enter'],
-  bottomRow: ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'Space', 'Sym']
-};
-
-// Add this component for the virtual keyboard
-const VirtualKeyboard = ({ onKeyPress, onKeyRelease }) => {
-  const handleTouchStart = useCallback((key: string) => {
-    onKeyPress(key);
-  }, [onKeyPress]);
-
-  const handleTouchEnd = useCallback((key: string) => {
-    onKeyRelease(key);
-  }, [onKeyRelease]);
-
-  const renderKey = (key: string) => (
-    <button
-      key={key}
-      className="bg-gray-700 text-white rounded p-2 text-sm uppercase hover:bg-gray-600 active:bg-gray-500"
-      onTouchStart={() => handleTouchStart(key)}
-      onTouchEnd={() => handleTouchEnd(key)}
-      onMouseDown={() => handleTouchStart(key)}
-      onMouseUp={() => handleTouchEnd(key)}
-      onMouseLeave={() => handleTouchEnd(key)}
-    >
-      {key}
-    </button>
-  );
-
-  return (
-    <div className="bg-gray-800 p-2 rounded-t-lg">
-      <div className="grid grid-cols-10 gap-1 mb-1">
-        {SPECTRUM_KEYS.numbers.map(renderKey)}
-      </div>
-      <div className="grid grid-cols-10 gap-1 mb-1">
-        {SPECTRUM_KEYS.topRow.map(renderKey)}
-      </div>
-      <div className="grid grid-cols-10 gap-1 mb-1">
-        {SPECTRUM_KEYS.middleRow.map(renderKey)}
-      </div>
-      <div className="grid grid-cols-10 gap-1">
-        {SPECTRUM_KEYS.bottomRow.map(renderKey)}
-      </div>
-    </div>
-  );
-};
-
 export default function Emulator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const isSmallScreen = useScreenSize();
-  const [showKeyboard, setShowKeyboard] = useState(false);
 
   // Calculate canvas dimensions
   const canvasWidth = isSmallScreen ? 320 : 640;
@@ -205,23 +154,6 @@ export default function Emulator() {
       window.Module.loadDroppedFile(file.name, arrayBuffer);
     }
   };
-
-  // Add these handlers
-  const handleKeyPress = useCallback((key: string) => {
-    if (window.Module) {
-      // Convert key to keycode and send to emulator
-      const event = new KeyboardEvent('keydown', { key });
-      window.dispatchEvent(event);
-    }
-  }, []);
-
-  const handleKeyRelease = useCallback((key: string) => {
-    if (window.Module) {
-      // Convert key to keycode and send to emulator
-      const event = new KeyboardEvent('keyup', { key });
-      window.dispatchEvent(event);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 py-2">
