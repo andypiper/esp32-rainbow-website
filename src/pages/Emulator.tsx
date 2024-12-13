@@ -162,7 +162,7 @@ export default function Emulator() {
       </Helmet>
 
       <div className="relative py-1 mx-auto">
-        <div className={`bg-gray-800 rounded-lg shadow-lg p-4 mx-auto ${isSmallScreen ? 'w-[352px]' : 'w-[672px]'}`}>
+        <div className={`bg-gray-800 rounded-lg shadow-lg p-4 mx-auto max-w-[672px] w-[95%]`}>
           {/* Description */}
           <div className="text-gray-300 mb-4 text-sm">
             <p className="mb-2">
@@ -188,9 +188,7 @@ export default function Emulator() {
           ) : (
             /* Emulator Canvas with drag handlers */
             <div 
-              className={`border border-gray-700 flex justify-center mx-auto relative ${
-                isSmallScreen ? 'w-[320px]' : 'w-[640px]'
-              }`}
+              className={`border border-gray-700 flex justify-center mx-auto relative aspect-[4/3] w-full max-w-[640px]`}
               onDragEnter={handleDragEnter}
               onDragOver={handleDragOver}
             >
@@ -199,7 +197,7 @@ export default function Emulator() {
                 ref={canvasRef}
                 width={canvasWidth}
                 height={canvasHeight}
-                className="bg-black"
+                className="bg-black w-full h-full"
                 onContextMenu={(e) => e.preventDefault()}
                 tabIndex={-1}
               />
