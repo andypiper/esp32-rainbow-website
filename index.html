@@ -44,7 +44,7 @@
             'event_callback': callback
           });
 
-          fbq('track', 'InitiateCheckout', {currency: "USD", value: 20.00});
+          fbq('track', 'Purchase', {currency: "USD", value: 20.00});
         } catch (error) {
           // If gtag fails, ensure navigation still happens
           if (typeof url !== 'undefined') {
