@@ -15,16 +15,16 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-900">
           <Helmet>
-            <title>ESP32 Rainbow - LED Controller</title>
-            <meta name="description" content="Control your ESP32-powered LED strips with ease. Open-source hardware and software solution for creating beautiful LED lighting effects." />
+            <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
+            <meta name="description" content="A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games." />
             
             {/* JSON-LD structured data */}
             <script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Product",
-                "name": "ESP32 Rainbow LED Controller",
-                "description": "Control your ESP32-powered LED strips with ease. Open-source hardware and software solution for creating beautiful LED lighting effects.",
+                "name": "ESP32 Rainbow ZX Spectrum Emulator",
+                "description": "A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games.",
                 "brand": {
                   "@type": "Brand",
                   "name": "ESP32 Rainbow"
