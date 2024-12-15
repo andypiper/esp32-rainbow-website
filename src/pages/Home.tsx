@@ -7,6 +7,8 @@ import heroPlaceholder from '../assets/hero/placeholder.webp'
 import youtubeThumb from '../assets/2moCumkF3EM.webp'
 import youtubeThumbMobile from '../assets/2moCumkF3EM-640.webp'
 
+declare function gtag_report_conversion(url: string): boolean;
+
 function YouTubeFacade() {
   const [showVideo, setShowVideo] = useState(false);
   const videoId = '2moCumkF3EM';
@@ -59,6 +61,18 @@ function YouTubeFacade() {
 export default function Home() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault(); // Prevent default navigation
+    
+    // Check if gtag_report_conversion exists (not blocked)
+    if (typeof gtag_report_conversion === 'function') {
+      gtag_report_conversion('https://www.crowdsupply.com/atomic14/esp32-rainbow');
+    } else {
+      // Fallback: direct navigation if gtag is blocked
+      window.location.href = 'https://www.crowdsupply.com/atomic14/esp32-rainbow';
+    }
+  };
+
   useEffect(() => {
     // Preload the hero image
     const img = new Image();
@@ -105,9 +119,10 @@ export default function Home() {
         <div className="text-center max-w-4xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4">
             <Link
-              to="https://www.crowdsupply.com/atomic14/esp32-rainbow"
+              href="https://www.crowdsupply.com/atomic14/esp32-rainbow"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleBuyClick}
               className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
             >
               Buy Now

@@ -20,5 +20,37 @@
 
       gtag('config', 'G-LQV48EE2KV');
     </script>
+    <script>
+      function gtag_report_conversion(url) {
+        // Set a timeout to ensure navigation happens even if GA fails
+        const navigationTimeout = setTimeout(() => {
+          if (typeof url !== 'undefined') {
+            window.location.href = url;
+          }
+        }, 1000); // Fallback after 1 second
+
+        try {
+          var callback = function () {
+            clearTimeout(navigationTimeout);
+            if (typeof url !== 'undefined') {
+              window.location.href = url;
+            }
+          };
+
+          gtag('event', 'conversion', {
+            'send_to': 'AW-627599899/MGUjCMW13PcZEJvUoasC',
+            'value': 20.0,
+            'currency': 'USD',
+            'event_callback': callback
+          });
+        } catch (error) {
+          // If gtag fails, ensure navigation still happens
+          if (typeof url !== 'undefined') {
+            window.location.href = url;
+          }
+        }
+        return false;
+      }
+    </script>  
   </body>
 </html>
