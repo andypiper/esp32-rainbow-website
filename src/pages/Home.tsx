@@ -6,6 +6,7 @@ import heroDesktop from '../assets/hero/desktop.webp'
 import heroPlaceholder from '../assets/hero/placeholder.webp'
 import youtubeThumb from '../assets/2moCumkF3EM.webp'
 import youtubeThumbMobile from '../assets/2moCumkF3EM-640.webp'
+import ReactPixel from 'react-facebook-pixel';
 
 declare function gtag_report_conversion(url: string): boolean;
 
@@ -58,20 +59,37 @@ function YouTubeFacade() {
   );
 }
 
+const handlePurchaseClick = (url: string) => {
+  // Set a timeout to ensure navigation happens even if tracking fails
+  const navigationTimeout = setTimeout(() => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, 1000);
+
+  try {
+    const callback = () => {
+      clearTimeout(navigationTimeout);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
+    // Google Analytics conversion tracking
+    gtag('event', 'conversion', {
+      'send_to': 'AW-627599899/MGUjCMW13PcZEJvUoasC',
+      'value': 20.0,
+      'currency': 'USD',
+      'event_callback': callback
+    });
+
+    // Facebook Pixel purchase tracking
+    ReactPixel.track('Purchase', {currency: "USD", value: 20.00});
+  } catch (error) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  return false;
+};
+
 export default function Home() {
   const [imageLoaded, setImageLoaded] = useState(false);
-
-  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault(); // Prevent default navigation
-    
-    // Check if gtag_report_conversion exists (not blocked)
-    if (typeof gtag_report_conversion === 'function') {
-      gtag_report_conversion('https://www.crowdsupply.com/atomic14/esp32-rainbow');
-    } else {
-      // Fallback: direct navigation if gtag is blocked
-      window.location.href = 'https://www.crowdsupply.com/atomic14/esp32-rainbow';
-    }
-  };
 
   useEffect(() => {
     // Preload the hero image
@@ -118,15 +136,12 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center py-8">
         <div className="text-center max-w-4xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4">
-            <a
-              href="https://www.crowdsupply.com/atomic14/esp32-rainbow"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleBuyClick}
+          <button
+            onClick={() => handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow')}
               className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
-            >
+          >
               Buy Now
-            </a>
+            </button>
             <Link
               to="/docs"
               className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-indigo-600 border-2 border-indigo-600 rounded-md hover:bg-indigo-50 transition-colors duration-150"

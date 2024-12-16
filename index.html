@@ -20,51 +20,5 @@
 
       gtag('config', 'G-LQV48EE2KV');
     </script>
-    <script>
-      function gtag_report_conversion(url) {
-        // Set a timeout to ensure navigation happens even if GA fails
-        const navigationTimeout = setTimeout(() => {
-          if (typeof url !== 'undefined') {
-            window.location.href = url;
-          }
-        }, 1000); // Fallback after 1 second
-
-        try {
-          var callback = function () {
-            clearTimeout(navigationTimeout);
-            if (typeof url !== 'undefined') {
-              window.location.href = url;
-            }
-          };
-
-          gtag('event', 'conversion', {
-            'send_to': 'AW-627599899/MGUjCMW13PcZEJvUoasC',
-            'value': 20.0,
-            'currency': 'USD',
-            'event_callback': callback
-          });
-
-          fbq('track', 'Purchase', {currency: "USD", value: 20.00});
-        } catch (error) {
-          // If gtag fails, ensure navigation still happens
-          if (typeof url !== 'undefined') {
-            window.location.href = url;
-          }
-        }
-        return false;
-      }
-    </script>  
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '8462774477184442');
-      fbq('track', 'PageView');
-    </script>
   </body>
 </html>

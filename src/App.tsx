@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { SerialProvider } from './contexts/SerialContext'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
@@ -8,12 +9,26 @@ import Docs from './pages/Docs'
 import GitHub from './pages/GitHub'
 import Emulator from './pages/Emulator'
 import { Helmet } from 'react-helmet'
+import { initFacebookPixel } from './utils/FacebookPixel'
+
+// Create a new component to handle route changes
+function RouteTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const ReactPixel = initFacebookPixel();
+    ReactPixel.pageView();
+  }, [location]);
+
+  return null;
+}
 
 function App() {
   return (
     <SerialProvider>
       <Router>
         <div className="min-h-screen bg-gray-900">
+          <RouteTracker />
           <Helmet>
             <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
             <meta name="description" content="A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games." />
