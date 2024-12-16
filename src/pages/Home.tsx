@@ -8,8 +8,6 @@ import youtubeThumb from '../assets/2moCumkF3EM.webp'
 import youtubeThumbMobile from '../assets/2moCumkF3EM-640.webp'
 import ReactPixel from 'react-facebook-pixel';
 
-declare function gtag_report_conversion(url: string): boolean;
-
 function YouTubeFacade() {
   const [showVideo, setShowVideo] = useState(false);
   const videoId = '2moCumkF3EM';

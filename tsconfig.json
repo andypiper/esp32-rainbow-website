@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "types": ["w3c-web-serial"]
+    "types": ["w3c-web-serial"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   }
 }
