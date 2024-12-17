@@ -6,6 +6,9 @@ from typing import List, Dict, Any
 from pathlib import Path
 import string
 import math
+from xml.etree import ElementTree as ET
+from datetime import datetime
+import shutil
 
 # Key mappings for shorter JSON output
 KEY_MAPPINGS = {
@@ -150,6 +153,53 @@ def create_paginated_files(entries: List[Dict], letter: str, data_dir: Path) -> 
     
     return total_pages
 
+def generate_sitemap(index_data: List[Dict], project_root: Path) -> None:
+    # Create the root element
+    urlset = ET.Element('urlset', {
+        'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9'
+    })
+    
+    # Base URL of the website
+    base_url = 'https://www.esp32rainbow.com'
+    current_date = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # Add main games page
+    games_url = ET.SubElement(urlset, 'url')
+    ET.SubElement(games_url, 'loc').text = f'{base_url}/games'
+    ET.SubElement(games_url, 'lastmod').text = current_date
+    ET.SubElement(games_url, 'changefreq').text = 'weekly'
+    ET.SubElement(games_url, 'priority').text = '0.8'
+    
+    # Add individual game pages
+    for entry in index_data:
+        game_url = ET.SubElement(urlset, 'url')
+        ET.SubElement(game_url, 'loc').text = f'{base_url}/games/{entry["i"]}'
+        ET.SubElement(game_url, 'lastmod').text = current_date
+        ET.SubElement(game_url, 'changefreq').text = 'monthly'
+        ET.SubElement(game_url, 'priority').text = '0.6'
+    
+    # Create the XML tree and write it to a file
+    tree = ET.ElementTree(urlset)
+    ET.indent(tree, space='  ')
+    
+    sitemap_path = project_root / 'public' / 'sitemap.xml'
+    tree.write(sitemap_path, encoding='utf-8', xml_declaration=True)
+    print(f'Generated sitemap at {sitemap_path}')
+
+def cleanup_generated_files(project_root: Path) -> None:
+    """Remove all generated files and directories before creating new ones."""
+    # Clean up data directory
+    data_dir = project_root / "public" / "data"
+    if data_dir.exists():
+        shutil.rmtree(data_dir)
+        print(f"Cleaned up {data_dir}")
+    
+    # Clean up sitemap
+    sitemap_path = project_root / "public" / "sitemap.xml"
+    if sitemap_path.exists():
+        sitemap_path.unlink()
+        print(f"Cleaned up {sitemap_path}")
+
 def main():
     # Get the project root directory (one level up from scripts)
     script_dir = Path(__file__).parent
@@ -157,10 +207,13 @@ def main():
     db_path = script_dir / "zxdb.sqlite"
     data_dir = project_root / "public" / "data"
     
-    # Create the output directory if it doesn't exist
-    data_dir.mkdir(parents=True, exist_ok=True)
-    
     try:
+        # Clean up existing files
+        cleanup_generated_files(project_root)
+        
+        # Create the output directory
+        data_dir.mkdir(parents=True, exist_ok=True)
+        
         # Fetch and transform the data
         rows = fetch_data(str(db_path))
         transformed_data = transform_data(rows)
@@ -174,6 +227,9 @@ def main():
         for letter, entries in transformed_data["by_letter"].items():
             total_pages = create_paginated_files(entries, letter, data_dir)
             print(f"Successfully generated {letter}/ with {total_pages} pages ({len(entries)} entries)")
+        
+        # Generate sitemap
+        generate_sitemap(transformed_data["index"], project_root)
         
     except sqlite3.Error as e:
         print(f"Database error: {e}")
