@@ -8,6 +8,8 @@ import Firmware from './pages/Firmware'
 import Docs from './pages/Docs'
 import GitHub from './pages/GitHub'
 import Emulator from './pages/Emulator'
+import Games from './pages/Games'
+import GameDetail from './pages/GameDetail'
 import { Helmet } from 'react-helmet'
 import { initFacebookPixel } from './utils/FacebookPixel'
 
@@ -67,6 +69,8 @@ function App() {
               <Route path="/firmware" element={<Firmware />} />
               <Route path="/emulator" element={<Emulator />} />
               <Route path="/github" element={<GitHub />} />
+              <Route path="/games" element={<Games />} />
+              <Route path="/games/:id" element={<GameDetail />} />
               <Route path="*" element={
                 <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
                   <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>

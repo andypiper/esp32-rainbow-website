@@ -1,0 +1,6 @@
+# No external dependencies required - using only Python standard library modules
+# Standard library modules used:
+# - sqlite3
+# - json
+# - typing
+# - pathlib 
