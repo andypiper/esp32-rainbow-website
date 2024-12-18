@@ -12,6 +12,7 @@ import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
+import Banner from './components/Banner'
 
 // Create a new component to handle route changes
 function RouteTracker() {
@@ -30,7 +31,8 @@ function App() {
     <HelmetProvider>
       <SerialProvider>
         <Router>
-          <div className="min-h-screen bg-gray-900">
+          <div className="min-h-screen bg-gray-900 text-gray-100">
+            <Banner />
             <RouteTracker />
             <Helmet>
               <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
