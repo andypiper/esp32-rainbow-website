@@ -47,6 +47,20 @@ def fetch_data(db_path: str) -> List[tuple]:
         inner join filetypes ft on ft.id = d.filetype_id
     where
         machine like 'ZX-Spectrum%'
+        AND (
+            genre like 'Adventure Game%'
+            OR genre like 'Arcade Game%'
+            OR genre like 'Compilation%'
+            OR genre like 'Covertape%'
+            OR genre like 'Demoscene%'
+            OR genre like 'Game%'
+            OR genre like 'General%'
+            OR genre like 'Programming%'
+            OR genre like 'Sport Game%'
+            OR genre like 'Strategy Game%'
+            OR genre like 'Tech Demo%'
+            OR genre like 'Utility%'
+        )
     order by e.id
     """
     
