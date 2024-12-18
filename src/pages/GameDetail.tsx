@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import ZXDBCredit from '../components/ZXDBCredit';
 
 const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
@@ -35,6 +36,22 @@ function getImageFiles(files: Game['f']): Game['f'] {
 function getFilenameFromUrl(url: string): string {
   const parts = url.split('/');
   return parts[parts.length - 1];
+}
+
+// Add new function to generate structured data
+function generateStructuredData(game: Game) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": game.t,
+    "gameGenre": game.g,
+    "gamePlatform": game.m,
+    "offers": game.f.map(file => ({
+      "@type": "Offer",
+      "url": file.l,
+      "fileFormat": file.y
+    }))
+  };
 }
 
 export default function GameDetail() {
@@ -161,116 +178,150 @@ export default function GameDetail() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-gray-800 rounded-lg shadow">
-        <div className="p-6">
-          <button onClick={handleBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
-            ← Back to Games
-          </button>
-          
-          <div className="flex justify-between items-center mt-4 mb-6">
-            <h1 className="text-3xl font-bold text-gray-100">{game.t}</h1>
-            {getImageFiles(game.f).length > 0 && (
-              <a 
-                href="#files" 
-                className="text-indigo-400 hover:text-indigo-300 text-sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('files')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                Jump to Files ↓
-              </a>
-            )}
-          </div>
+    <>
+      {game && (
+        <Helmet>
+          <title>{`${game.t} - ZX Spectrum Game`}</title>
+          <meta name="description" content={`Download ${game.t} - a ${game.g} for ${game.m}. Free download with multiple format options including ${game.f.map(f => f.y).join(', ')}.`} />
+          <script type="application/ld+json">
+            {JSON.stringify(generateStructuredData(game))}
+          </script>
+        </Helmet>
+      )}
 
-          <ZXDBCredit />
-          
-          {/* Image Gallery */}
-          {getImageFiles(game.f).length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-100 mb-4">Screenshots</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getImageFiles(game.f).map((file, index) => (
-                  <div 
-                    key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                    onClick={() => setSelectedImage(file.l)}
-                  >
-                    <img
-                      src={file.l}
-                      alt={file.y}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-white text-sm truncate">{file.y}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Image Modal */}
-          {selectedImage && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-              onClick={() => setSelectedImage(null)}
-            >
-              <div className="relative max-w-4xl w-full">
-                <img
-                  src={selectedImage}
-                  alt="Full size screenshot"
-                  className="w-full h-auto rounded-lg"
-                />
-                <button
-                  className="absolute top-4 right-4 text-white hover:text-gray-300"
-                  onClick={() => setSelectedImage(null)}
+      <main className="container mx-auto px-4 py-8">
+        <article className="bg-gray-800 rounded-lg shadow">
+          <div className="p-6">
+            <nav className="mb-4">
+              <button onClick={handleBack} className="text-indigo-400 hover:text-indigo-300 inline-block">
+                ← Back to Games
+              </button>
+            </nav>
+            
+            <div className="flex justify-between items-center mt-4 mb-6">
+              <h1 className="text-3xl font-bold text-gray-100">{game?.t}</h1>
+              {game && getImageFiles(game.f).length > 0 && (
+                <a 
+                  href="#files" 
+                  className="text-indigo-400 hover:text-indigo-300 text-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('files')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Files Section */}
-          <div id="files">
-            <h2 className="text-xl font-semibold text-gray-100 mb-2">Files</h2>
-            <div className="bg-gray-700 rounded-lg p-4">
-              {game.f.length > 0 ? (
-                <ul className="space-y-2">
-                  {game.f.map((file, index) => (
-                    <li key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-gray-300">{file.y}</span>
-                        <span className="text-sm text-gray-400">{getFilenameFromUrl(file.l)}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        {file.s && (
-                          <span className="text-gray-400">{formatFileSize(file.s)}</span>
-                        )}
-                        <a
-                          href={file.l}
-                          className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Download
-                        </a>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-300">No files available</p>
+                  Jump to Files ↓
+                </a>
               )}
             </div>
+
+            {game && (
+              <section className="mb-6">
+                <dl className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-gray-400">Genre</dt>
+                    <dd className="text-gray-100">{game.g}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-400">Platform</dt>
+                    <dd className="text-gray-100">{game.m}</dd>
+                  </div>
+                </dl>
+              </section>
+            )}
+
+            <ZXDBCredit />
+            
+            {/* Image Gallery */}
+            {game && getImageFiles(game.f).length > 0 && (
+              <section className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-100 mb-4">Screenshots</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {getImageFiles(game.f).map((file, index) => (
+                    <div 
+                      key={index}
+                      className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                      onClick={() => setSelectedImage(file.l)}
+                    >
+                      <img
+                        src={file.l}
+                        alt={`Screenshot ${index + 1} of ${game.t}`}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p className="text-white text-sm truncate">{file.y}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Image Modal */}
+            {selectedImage && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+                onClick={() => setSelectedImage(null)}
+              >
+                <div className="relative max-w-4xl w-full">
+                  <img
+                    src={selectedImage}
+                    alt="Full size screenshot"
+                    className="w-full h-auto rounded-lg"
+                  />
+                  <button
+                    className="absolute top-4 right-4 text-white hover:text-gray-300"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Files Section */}
+            {game && (
+              <section id="files">
+                <h2 className="text-xl font-semibold text-gray-100 mb-2">Download Files</h2>
+                <div className="bg-gray-700 rounded-lg p-4">
+                  {game.f.length > 0 ? (
+                    <ul className="space-y-2" role="list">
+                      {game.f.map((file, index) => (
+                        <li key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-gray-300">{file.y}</span>
+                            <span className="text-sm text-gray-400">{getFilenameFromUrl(file.l)}</span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            {file.s && (
+                              <span className="text-gray-400">{formatFileSize(file.s)}</span>
+                            )}
+                            <a
+                              href={file.l}
+                              className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download
+                              aria-label={`Download ${file.y} version of ${game.t}`}
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-300">No files available</p>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+        </article>
+      </main>
+    </>
   );
 } 

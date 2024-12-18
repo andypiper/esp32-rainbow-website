@@ -10,7 +10,7 @@ import GitHub from './pages/GitHub'
 import Emulator from './pages/Emulator'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
-import { Helmet } from 'react-helmet'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
 
 // Create a new component to handle route changes
@@ -27,60 +27,62 @@ function RouteTracker() {
 
 function App() {
   return (
-    <SerialProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-900">
-          <RouteTracker />
-          <Helmet>
-            <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
-            <meta name="description" content="A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games." />
-            
-            {/* JSON-LD structured data */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Product",
-                "name": "ESP32 Rainbow ZX Spectrum Emulator",
-                "description": "A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games.",
-                "brand": {
-                  "@type": "Brand",
-                  "name": "ESP32 Rainbow"
-                },
-                "offers": {
-                  "@type": "Offer",
-                  "url": "https://www.crowdsupply.com/atomic14/esp32-rainbow",
-                  "availability": "https://schema.org/InStock"
-                },
-                "url": "https://www.esp32rainbow.com",
-                "category": "Electronics",
-                "isAccessoryOrSparePartFor": {
+    <HelmetProvider>
+      <SerialProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-900">
+            <RouteTracker />
+            <Helmet>
+              <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
+              <meta name="description" content="A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games." />
+              
+              {/* JSON-LD structured data */}
+              <script type="application/ld+json">
+                {JSON.stringify({
+                  "@context": "https://schema.org",
                   "@type": "Product",
-                  "name": "ESP32 Microcontroller"
-                }
-              })}
-            </script>
-          </Helmet>
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/docs" element={<Docs />} />
-              <Route path="/firmware" element={<Firmware />} />
-              <Route path="/emulator" element={<Emulator />} />
-              <Route path="/github" element={<GitHub />} />
-              <Route path="/games" element={<Games />} />
-              <Route path="/games/:id" element={<GameDetail />} />
-              <Route path="*" element={
-                <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-                  <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>
-                </div>
-              } />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </SerialProvider>
+                  "name": "ESP32 Rainbow ZX Spectrum Emulator",
+                  "description": "A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games.",
+                  "brand": {
+                    "@type": "Brand",
+                    "name": "ESP32 Rainbow"
+                  },
+                  "offers": {
+                    "@type": "Offer",
+                    "url": "https://www.crowdsupply.com/atomic14/esp32-rainbow",
+                    "availability": "https://schema.org/InStock"
+                  },
+                  "url": "https://www.esp32rainbow.com",
+                  "category": "Electronics",
+                  "isAccessoryOrSparePartFor": {
+                    "@type": "Product",
+                    "name": "ESP32 Microcontroller"
+                  }
+                })}
+              </script>
+            </Helmet>
+            <Navbar />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/docs" element={<Docs />} />
+                <Route path="/firmware" element={<Firmware />} />
+                <Route path="/emulator" element={<Emulator />} />
+                <Route path="/github" element={<GitHub />} />
+                <Route path="/games" element={<Games />} />
+                <Route path="/games/:id" element={<GameDetail />} />
+                <Route path="*" element={
+                  <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+                    <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>
+                  </div>
+                } />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </SerialProvider>
+    </HelmetProvider>
   )
 }
 

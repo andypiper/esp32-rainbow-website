@@ -437,22 +437,17 @@ export default function Games() {
                           }}
                         />
                         <div 
-                          className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-gray-900/30"
+                          className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"
                         />
                       </>
                     )}
-                    <div className="relative z-10">
+                    <div className="relative z-10 h-full flex flex-col justify-end">
                       <h3 className="text-lg font-semibold text-gray-100 mb-2 truncate" title={game.t}>
                         {game.t}
                       </h3>
                       <div className="text-gray-300 text-sm">
                         <p className="truncate">Genre: {game.g}</p>
                         <p className="truncate">Machine: {game.m}</p>
-                        {game.f.length > 0 && (
-                          <div className="mt-2">
-                            <p className="font-semibold mb-1">Files: {game.f.length}</p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </Link>
