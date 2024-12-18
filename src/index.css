@@ -8,6 +8,10 @@
   font-weight: 400;
   color: #e5e7eb;
   background-color: #111827;
+  --text-yellow-400: rgb(250 204 21);
+  --text-yellow-500: rgb(234 179 8);
+  --text-yellow-600: rgb(202 138 4);
+  --text-yellow-700: rgb(161 98 7);
 }
 
 a {

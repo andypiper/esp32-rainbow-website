@@ -21,6 +21,7 @@ KEY_MAPPINGS = {
     "link": "l",
     "type": "y",
     "size": "s",
+    "score": "sc",
     "pages": "p"  # Added for pagination info
 }
 
@@ -74,9 +75,23 @@ def fetch_data(db_path: str) -> List[tuple]:
     cursor.execute(query)
     rows = cursor.fetchall()
     conn.close()
+    print(f"Fetched {len(rows)} rows")
     return rows
 
-def transform_data(rows: List[tuple]) -> Dict[str, Any]:
+def fetch_scores(db_path: str) -> List[tuple]:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    query = "select entry_id, score from scores"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+    print(f"Fetched {len(rows)} scores")
+    return rows
+
+def transform_data(rows: List[tuple], scores: List[tuple]) -> Dict[str, Any]:
+    # create a quick lookup for scores by entry_id
+    score_lookup = {score[0]: score[1] for score in scores}
+    
     # Dictionary to store entries by first letter
     entries_by_letter = {}
     # List for the index
@@ -93,7 +108,8 @@ def transform_data(rows: List[tuple]) -> Dict[str, Any]:
                 KEY_MAPPINGS["title"]: title,
                 KEY_MAPPINGS["genre"]: genre,
                 KEY_MAPPINGS["machine"]: machine,
-                KEY_MAPPINGS["files"]: []
+                KEY_MAPPINGS["score"]: score_lookup.get(entry_id, 0),
+                KEY_MAPPINGS["files"]: [],
             }
             
             # Determine which letter file this entry belongs in
@@ -242,7 +258,9 @@ def main():
         # Fetch and transform the data
         rows = fetch_data(str(db_path))
 
-        transformed_data = transform_data(rows)
+        scores = fetch_scores(str(db_path))
+
+        transformed_data = transform_data(rows, scores)
 
         # Write the index file
         index_path = data_dir / "index.json"

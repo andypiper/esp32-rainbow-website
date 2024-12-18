@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
+import StarRating from '../components/StarRating';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
@@ -32,6 +33,7 @@ interface Game {
   t: string;  // title
   g: string;  // genre
   m: string;  // machine
+  sc: number; // score (new)
   f: {        // files
     l: string;  // link
     y: string;  // type
@@ -447,6 +449,11 @@ export default function Games() {
                       <div className="text-gray-300 text-sm">
                         <p className="truncate">Genre: {game.g}</p>
                         <p className="truncate">Machine: {game.m}</p>
+                        {game.sc ? (
+                          <p className="mt-1">
+                            <StarRating score={game.sc} />
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </Link>

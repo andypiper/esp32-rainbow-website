@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ZXDBCredit from '../components/ZXDBCredit';
+import StarRating from '../components/StarRating';
 
 const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
 
@@ -10,6 +11,7 @@ interface Game {
   t: string;  // title
   g: string;  // genre
   m: string;  // machine
+  sc: number; // score (new)
   f: {        // files
     l: string;  // link
     y: string;  // type
@@ -225,6 +227,14 @@ export default function GameDetail() {
                     <dt className="text-gray-400">Platform</dt>
                     <dd className="text-gray-100">{game.m}</dd>
                   </div>
+                  {game.sc ? (
+                    <div>
+                      <dt className="text-gray-400">Score</dt>
+                      <dd>
+                        <StarRating score={game.sc} />
+                      </dd>
+                    </div>
+                  ) : null}
                 </dl>
               </section>
             )}
