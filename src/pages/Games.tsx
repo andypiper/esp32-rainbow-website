@@ -105,7 +105,6 @@ export default function Games() {
   const [error, setError] = useState<string | null>(null);
   const searchIndex = useRef<FlexSearch.Index | null>(null);
   const indexData = useRef<IndexEntry[]>([]);
-  const scrollPositionRef = useRef<number>(0);
 
   // Restore scroll position when returning
   useEffect(() => {
