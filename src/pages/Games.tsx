@@ -3,12 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
 import GameTile from '../components/GameTile';
+import { ensureBaseUrl } from '../utils/urls';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
-const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
 
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -82,12 +82,6 @@ async function fetchWithCache<T>(url: string, cacheName: string = 'games-cache')
   
   await cache.put(url, newResponse.clone());
   return data;
-}
-
-// Helper function to ensure URL has correct base
-function ensureBaseUrl(url: string): string {
-  if (url.startsWith('http')) return url;
-  return `${SPECTRUM_COMPUTING_BASE_URL}${url}`;
 }
 
 export default function Games() {
@@ -413,7 +407,6 @@ export default function Games() {
                   currentPage={currentPage}
                   searchInput={searchInput}
                   onGameClick={handleGameClick}
-                  baseUrl={SPECTRUM_COMPUTING_BASE_URL}
                 />
               ))}
             </div>

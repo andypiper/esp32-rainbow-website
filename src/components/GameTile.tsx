@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SpectrumScreen } from '../utils/SpectrumScreen';
 import StarRating from './StarRating';
+import { ensureBaseUrl } from '../utils/urls';
 
 interface Game {
   i: number;  // id
@@ -25,20 +26,12 @@ interface GameTileProps {
   baseUrl?: string;
 }
 
-const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
-
-// Helper function to ensure URL has correct base
-function ensureBaseUrl(url: string, baseUrl: string = SPECTRUM_COMPUTING_BASE_URL): string {
-  if (url.startsWith('http')) return url;
-  return `${baseUrl}${url}`;
-}
-
 // Helper function to get running screen URL
-async function getRunningScreenUrl(files: Game['f'], baseUrl: string): Promise<string | null> {
+async function getRunningScreenUrl(files: Game['f']): Promise<string | null> {
   const runningScreen = files.find(f => f.y === 'Running screen');
   if (!runningScreen) return null;
   
-  const url = ensureBaseUrl(runningScreen.l, baseUrl);
+  const url = ensureBaseUrl(runningScreen.l);
   
   // If it's a SCR file, decode it
   if (url.toLowerCase().endsWith('.scr')) {
@@ -61,14 +54,13 @@ export default function GameTile({
   currentPage, 
   searchInput, 
   onGameClick,
-  baseUrl = SPECTRUM_COMPUTING_BASE_URL 
 }: GameTileProps) {
   const [screenUrl, setScreenUrl] = useState<string | null>(null);
 
   // Fetch and process the screen URL when the game changes
   useEffect(() => {
-    getRunningScreenUrl(game.f, baseUrl).then(url => setScreenUrl(url));
-  }, [game, baseUrl]);
+    getRunningScreenUrl(game.f).then(url => setScreenUrl(url));
+  }, [game]);
 
   return (
     <Link

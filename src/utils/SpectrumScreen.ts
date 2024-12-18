@@ -1,3 +1,5 @@
+import { getProxyUrl } from "./urls";
+
 // ZX Spectrum color palette
 const SPECTRUM_COLORS = [
   [0x00, 0x00, 0x00], // Black
@@ -21,10 +23,6 @@ const SPECTRUM_COLORS = [
 // Cache settings
 const CACHE_NAME = 'spectrum-scr-cache';
 const CACHE_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
-
-// Development settings
-const isDevelopment = import.meta.env.DEV;
-const DEV_PROXY_URL = 'http://localhost:8787/proxy';
 
 export class SpectrumScreen {
   private width: number = 256;
@@ -62,11 +60,7 @@ export class SpectrumScreen {
     } catch (error) {
       console.warn('Cache API access failed:', error);
     }
-
-    // If not in cache, fetch it through our proxy
-    const proxyBaseUrl = isDevelopment ? DEV_PROXY_URL : '/proxy';
-    const proxyUrl = `${proxyBaseUrl}?url=${encodeURIComponent(url)}`;
-    
+    const proxyUrl = getProxyUrl(url);
     const response = await fetch(proxyUrl);
     
     if (!response.ok) {
