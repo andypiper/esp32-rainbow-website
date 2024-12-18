@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
-import StarRating from '../components/StarRating';
+import GameTile from '../components/GameTile';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
@@ -91,10 +91,25 @@ function ensureBaseUrl(url: string): string {
 }
 
 // Helper function to get running screen URL
-function getRunningScreenUrl(files: Game['f']): string | null {
+async function getRunningScreenUrl(files: Game['f']): Promise<string | null> {
   const runningScreen = files.find(f => f.y === 'Running screen');
   if (!runningScreen) return null;
-  return ensureBaseUrl(runningScreen.l);
+  
+  const url = ensureBaseUrl(runningScreen.l);
+  
+  // If it's a SCR file, decode it
+  if (url.toLowerCase().endsWith('.scr')) {
+    try {
+      const screen = new SpectrumScreen();
+      await screen.loadFromUrl(url);
+      return screen.toDataURL();
+    } catch (error) {
+      console.error('Failed to decode SCR file:', error);
+      return url; // Fallback to original URL if decoding fails
+    }
+  }
+  
+  return url;
 }
 
 export default function Games() {
@@ -412,53 +427,17 @@ export default function Games() {
         ) : games.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {games.map((game) => {
-                const runningScreenUrl = getRunningScreenUrl(game.f);
-                return (
-                  <Link
-                    key={game.i}
-                    onClick={handleGameClick}
-                    to={`/games/${game.i}?${new URLSearchParams({
-                      ...(selectedLetter ? { letter: selectedLetter } : {}),
-                      ...(currentPage ? { page: currentPage.toString() } : {}),
-                      ...(searchInput ? { search: searchInput } : {})
-                    }).toString()}`}
-                    className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-64 group ${
-                      runningScreenUrl ? 'hover:shadow-xl' : 'bg-gray-700 hover:bg-gray-600'
-                    }`}
-                  >
-                    {runningScreenUrl && (
-                      <>
-                        <div 
-                          className="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-110"
-                          style={{ 
-                            backgroundImage: `url(${runningScreenUrl})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}
-                        />
-                        <div 
-                          className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"
-                        />
-                      </>
-                    )}
-                    <div className="relative z-10 h-full flex flex-col justify-end">
-                      <h3 className="text-lg font-semibold text-gray-100 mb-2 truncate" title={game.t}>
-                        {game.t}
-                      </h3>
-                      <div className="text-gray-300 text-sm">
-                        <p className="truncate">Genre: {game.g}</p>
-                        <p className="truncate">Machine: {game.m}</p>
-                        {game.sc ? (
-                          <p className="mt-1">
-                            <StarRating score={game.sc} />
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {games.map((game) => (
+                <GameTile
+                  key={game.i}
+                  game={game}
+                  selectedLetter={selectedLetter}
+                  currentPage={currentPage}
+                  searchInput={searchInput}
+                  onGameClick={handleGameClick}
+                  baseUrl={SPECTRUM_COMPUTING_BASE_URL}
+                />
+              ))}
             </div>
 
             {/* Pagination */}

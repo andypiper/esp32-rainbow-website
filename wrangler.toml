@@ -1,0 +1,6 @@
+name = "esp32-rainbow-website"
+compatibility_date = "2023-01-01"
+main = "functions/_worker.ts"
+
+[dev]
+port = 8787

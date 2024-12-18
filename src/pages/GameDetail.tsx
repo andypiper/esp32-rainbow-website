@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ZXDBCredit from '../components/ZXDBCredit';
 import StarRating from '../components/StarRating';
+import { SpectrumScreen } from '../utils/SpectrumScreen';
 
 const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
 
@@ -25,19 +26,15 @@ function ensureBaseUrl(url: string): string {
   return `${SPECTRUM_COMPUTING_BASE_URL}${url}`;
 }
 
-// Helper function to get image files
-function getImageFiles(files: Game['f']): Game['f'] {
-  const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg'];
-  
-  return files.filter(f => 
-    imageExtensions.some(ext => f.l.toLowerCase().endsWith(ext))
-  );
-}
-
 // Helper function to get filename from URL
 function getFilenameFromUrl(url: string): string {
   const parts = url.split('/');
   return parts[parts.length - 1];
+}
+
+// Helper function to check if a file is a SCR file
+function isScrFile(file: Game['f'][0]): boolean {
+  return file.l.toLowerCase().endsWith('.scr');
 }
 
 // Add new function to generate structured data
@@ -64,6 +61,7 @@ export default function GameDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [scrImages, setScrImages] = useState<Record<string, string>>({});
 
   // Handle back navigation
   const handleBack = () => {
@@ -88,6 +86,25 @@ export default function GameDetail() {
       }
       
       navigate(url);
+    }
+  };
+
+  // Load and decode SCR files
+  const loadScrFiles = async (game: Game) => {
+    const scrFiles = game.f.filter(isScrFile);
+    const screen = new SpectrumScreen();
+    
+    for (const file of scrFiles) {
+      try {
+        const url = ensureBaseUrl(file.l);
+        await screen.loadFromUrl(url);
+        setScrImages(prev => ({
+          ...prev,
+          [file.l]: screen.toDataURL()
+        }));
+      } catch (error) {
+        console.error('Failed to load SCR file:', file.l, error);
+      }
     }
   };
 
@@ -122,11 +139,14 @@ export default function GameDetail() {
           ...gameData,
           f: gameData.f.map((file: Game['f'][0]) => ({
             ...file,
-            l: ensureBaseUrl(file.l)
+            l: file.l
           }))
         };
 
         setGame(processedGame);
+        
+        // Load SCR files
+        await loadScrFiles(processedGame);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -147,6 +167,14 @@ export default function GameDetail() {
       unitIndex++;
     }
     return `${size.toFixed(1)} ${units[unitIndex]}`;
+  };
+
+  // Get display URL for a file
+  const getDisplayUrl = (file: Game['f'][0]): string => {
+    if (isScrFile(file)) {
+      return scrImages[file.l] || ensureBaseUrl(file.l);
+    }
+    return ensureBaseUrl(file.l);
   };
 
   if (isLoading) {
@@ -202,7 +230,7 @@ export default function GameDetail() {
             
             <div className="flex justify-between items-center mt-4 mb-6">
               <h1 className="text-3xl font-bold text-gray-100">{game?.t}</h1>
-              {game && getImageFiles(game.f).length > 0 && (
+              {game && game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/)) && (
                 <a 
                   href="#files" 
                   className="text-indigo-400 hover:text-indigo-300 text-sm"
@@ -242,28 +270,35 @@ export default function GameDetail() {
             <ZXDBCredit />
             
             {/* Image Gallery */}
-            {game && getImageFiles(game.f).length > 0 && (
+            {game && game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/)) && (
               <section className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-100 mb-4">Screenshots</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {getImageFiles(game.f).map((file, index) => (
-                    <div 
-                      key={index}
-                      className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                      onClick={() => setSelectedImage(file.l)}
-                    >
-                      <img
-                        src={file.l}
-                        alt={`Screenshot ${index + 1} of ${game.t}`}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                        <p className="text-white text-sm truncate">{file.y}</p>
+                  {game.f
+                    .filter(file => file.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/))
+                    .map((file, index) => (
+                      <div 
+                        key={index}
+                        className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                        onClick={() => setSelectedImage(getDisplayUrl(file))}
+                      >
+                        <img
+                          src={getDisplayUrl(file)}
+                          alt={`Screenshot ${index + 1} of ${game.t}`}
+                          className={`absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110 ${
+                            isScrFile(file) ? 'pixelated' : ''
+                          }`}
+                          style={{
+                            imageRendering: isScrFile(file) ? 'pixelated' : 'auto'
+                          }}
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />
+                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                          <p className="text-white text-sm truncate">{file.y}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </section>
             )}
@@ -279,6 +314,9 @@ export default function GameDetail() {
                     src={selectedImage}
                     alt="Full size screenshot"
                     className="w-full h-auto rounded-lg"
+                    style={{
+                      imageRendering: selectedImage.includes('data:image/png;base64') ? 'pixelated' : 'auto'
+                    }}
                   />
                   <button
                     className="absolute top-4 right-4 text-white hover:text-gray-300"
