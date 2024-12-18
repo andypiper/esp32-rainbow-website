@@ -31,7 +31,7 @@ def fetch_data(db_path: str) -> List[tuple]:
     cursor = conn.cursor()
     
     query = """
-    select
+    select distinct
         e.id id, 
         title,
         gt.text genre,
@@ -60,6 +60,13 @@ def fetch_data(db_path: str) -> List[tuple]:
             OR genre like 'Strategy Game%'
             OR genre like 'Tech Demo%'
             OR genre like 'Utility%'
+        )
+        AND e.id IN (
+            SELECT DISTINCT entry_id 
+            FROM downloads 
+            WHERE file_link LIKE '%.z80.zip'
+               OR file_link LIKE '%.tap.zip'
+               OR file_link LIKE '%.tzx.zip'
         )
     order by e.id
     """
@@ -112,7 +119,7 @@ def transform_data(rows: List[tuple]) -> Dict[str, Any]:
             KEY_MAPPINGS["type"]: file_type,
             KEY_MAPPINGS["size"]: file_size
         })
-    
+  
     # Sort index entries by title
     sorted_index = sorted(index_entries, key=lambda x: x[KEY_MAPPINGS["title"]])
     
@@ -234,8 +241,9 @@ def main():
         
         # Fetch and transform the data
         rows = fetch_data(str(db_path))
+
         transformed_data = transform_data(rows)
-        
+
         # Write the index file
         index_path = data_dir / "index.json"
         write_json_file(transformed_data["index"], index_path)
