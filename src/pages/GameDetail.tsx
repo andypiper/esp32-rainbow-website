@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import ZXDBCredit from '../components/ZXDBCredit';
 
 const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
@@ -40,24 +40,39 @@ function getFilenameFromUrl(url: string): string {
 export default function GameDetail() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [game, setGame] = useState<Game | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Get the return URL with preserved parameters
-  const backToGamesUrl = (() => {
-    const letter = searchParams.get('letter');
-    const page = searchParams.get('page');
-    let url = '/games';
-    if (letter) {
-      url += `?letter=${letter}`;
-      if (page) {
-        url += `&page=${page}`;
+  // Handle back navigation
+  const handleBack = () => {
+    // Check if we can go back in history
+    if (window.history.state && window.history.state.idx > 0) {
+      console.log("Using back button");
+      navigate(-1);
+    } else {
+      console.log("Using URL");
+      // If we can't go back or came directly to this page, construct a URL
+      const letter = searchParams.get('letter');
+      const page = searchParams.get('page');
+      const search = searchParams.get('search');
+      
+      let url = '/games';
+      const params = new URLSearchParams();
+      
+      if (letter) params.set('letter', letter);
+      if (page) params.set('page', page);
+      if (search) params.set('search', search);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
+      
+      navigate(url);
     }
-    return url;
-  })();
+  };
 
   useEffect(() => {
     async function fetchGame() {
@@ -121,9 +136,9 @@ export default function GameDetail() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-gray-800 rounded-lg shadow p-8">
-          <Link to={backToGamesUrl} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
+          <button onClick={handleBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
             ← Back to Games
-          </Link>
+          </button>
           <div className="flex justify-center items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
           </div>
@@ -138,9 +153,9 @@ export default function GameDetail() {
         <div className="bg-gray-800 rounded-lg shadow p-8">
           <div className="text-center text-red-400">
             <p>{error || 'Game not found'}</p>
-            <Link to={backToGamesUrl} className="text-indigo-400 hover:text-indigo-300 mt-4 inline-block">
+            <button onClick={handleBack} className="text-indigo-400 hover:text-indigo-300 mt-4 inline-block">
               ← Back to Games
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -151,9 +166,9 @@ export default function GameDetail() {
     <div className="container mx-auto px-4 py-8">
       <div className="bg-gray-800 rounded-lg shadow">
         <div className="p-6">
-          <Link to={backToGamesUrl} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
+          <button onClick={handleBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
             ← Back to Games
-          </Link>
+          </button>
           
           <div className="flex justify-between items-center mt-4 mb-6">
             <h1 className="text-3xl font-bold text-gray-100">{game.t}</h1>

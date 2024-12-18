@@ -197,6 +197,36 @@ export default function Games() {
     setSearchParams(searchParams);
   };
 
+  // Update URL when search changes
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    if (searchInput) {
+      newParams.set('search', searchInput);
+      // Clear letter and page when searching
+      newParams.delete('letter');
+      newParams.delete('page');
+    } else {
+      newParams.delete('search');
+    }
+    setSearchParams(newParams);
+  }, [searchInput]);
+
+  // Initialize search input from URL
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search');
+    if (searchFromUrl && searchFromUrl !== searchInput) {
+      setSearchInput(searchFromUrl);
+      // Clear letter selection if there's a search
+      if (selectedLetter) {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('letter');
+        newParams.delete('page');
+        newParams.set('search', searchFromUrl);
+        setSearchParams(newParams);
+      }
+    }
+  }, []);
+
   // Fetch games data when letter or page changes
   useEffect(() => {
     async function fetchGames() {
@@ -370,7 +400,11 @@ export default function Games() {
                 return (
                   <Link
                     key={game.i}
-                    to={`/games/${game.i}?letter=${selectedLetter || ''}&page=${currentPage}`}
+                    to={`/games/${game.i}?${new URLSearchParams({
+                      ...(selectedLetter ? { letter: selectedLetter } : {}),
+                      ...(currentPage ? { page: currentPage.toString() } : {}),
+                      ...(searchInput ? { search: searchInput } : {})
+                    }).toString()}`}
                     className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-64 group ${
                       runningScreenUrl ? 'hover:shadow-xl' : 'bg-gray-700 hover:bg-gray-600'
                     }`}
