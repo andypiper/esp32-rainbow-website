@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import ZXDBCredit from '../components/ZXDBCredit';
 
 const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
