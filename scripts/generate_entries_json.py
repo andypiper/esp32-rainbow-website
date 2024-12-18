@@ -9,6 +9,7 @@ import math
 from xml.etree import ElementTree as ET
 from datetime import datetime
 import shutil
+import gzip
 
 # Key mappings for shorter JSON output
 KEY_MAPPINGS = {
@@ -126,6 +127,79 @@ def write_json_file(data: Any, output_path: Path) -> None:
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
 
+def write_complete_data(entries_by_letter: Dict[str, List[Dict]], data_dir: Path) -> None:
+    """Write all games to a single file, both uncompressed and gzipped."""
+    # Combine all entries into a single list
+    all_entries = []
+    search_entries = []  # Simplified version for search
+    for entries in entries_by_letter.values():
+        all_entries.extend(entries)
+        # Create search-optimized entries
+        for entry in entries:
+            search_entries.append({
+                "i": entry[KEY_MAPPINGS["id"]],  # id
+                "t": entry[KEY_MAPPINGS["title"]],  # title
+                "g": entry[KEY_MAPPINGS["genre"]],  # genre
+                "m": entry[KEY_MAPPINGS["machine"]],  # machine
+                "l": next(letter for letter, entries in entries_by_letter.items() if entry in entries),  # letter
+                "f": [{  # files
+                    "l": f["l"],  # link
+                    "y": f["y"],  # type
+                    "s": f["s"]   # size
+                } for f in entry[KEY_MAPPINGS["files"]]]
+            })
+    
+    # Sort by title
+    all_entries.sort(key=lambda x: x[KEY_MAPPINGS["title"]])
+    search_entries.sort(key=lambda x: x["t"])
+    
+    # Convert to JSON strings
+    json_data = json.dumps(all_entries, ensure_ascii=False, separators=(',', ':'))
+    search_json_data = json.dumps(search_entries, ensure_ascii=False, separators=(',', ':'))
+    
+    # Write uncompressed files
+    complete_path = data_dir / "complete.json"
+    with open(complete_path, 'w', encoding='utf-8') as f:
+        f.write(json_data)
+    
+    search_path = data_dir / "search.json"
+    with open(search_path, 'w', encoding='utf-8') as f:
+        f.write(search_json_data)
+    
+    # Write gzipped files
+    gzip_path = data_dir / "complete.json.gz"
+    with gzip.open(gzip_path, 'wt', encoding='utf-8') as f:
+        f.write(json_data)
+    
+    search_gzip_path = data_dir / "search.json.gz"
+    with gzip.open(search_gzip_path, 'wt', encoding='utf-8') as f:
+        f.write(search_json_data)
+    
+    # Get file sizes
+    size_bytes = complete_path.stat().st_size
+    size_mb = size_bytes / (1024 * 1024)
+    
+    gzip_size_bytes = gzip_path.stat().st_size
+    gzip_size_mb = gzip_size_bytes / (1024 * 1024)
+    
+    search_size_bytes = search_path.stat().st_size
+    search_size_mb = search_size_bytes / (1024 * 1024)
+    
+    search_gzip_size_bytes = search_gzip_path.stat().st_size
+    search_gzip_size_mb = search_gzip_size_bytes / (1024 * 1024)
+    
+    compression_ratio = (1 - (gzip_size_bytes / size_bytes)) * 100
+    search_compression_ratio = (1 - (search_gzip_size_bytes / search_size_bytes)) * 100
+    
+    print(f"Generated complete data file at {complete_path}")
+    print(f"  Uncompressed: {size_mb:.2f} MB")
+    print(f"  Gzipped: {gzip_size_mb:.2f} MB")
+    print(f"  Compression ratio: {compression_ratio:.1f}%")
+    print(f"\nGenerated search data file at {search_path}")
+    print(f"  Uncompressed: {search_size_mb:.2f} MB")
+    print(f"  Gzipped: {search_gzip_size_mb:.2f} MB")
+    print(f"  Compression ratio: {search_compression_ratio:.1f}%")
+
 def create_paginated_files(entries: List[Dict], letter: str, data_dir: Path) -> None:
     # Sort entries by title
     sorted_entries = sorted(entries, key=lambda x: x[KEY_MAPPINGS["title"]])
@@ -227,6 +301,9 @@ def main():
         for letter, entries in transformed_data["by_letter"].items():
             total_pages = create_paginated_files(entries, letter, data_dir)
             print(f"Successfully generated {letter}/ with {total_pages} pages ({len(entries)} entries)")
+        
+        # Write complete data file
+        write_complete_data(transformed_data["by_letter"], data_dir)
         
         # Generate sitemap
         generate_sitemap(transformed_data["index"], project_root)

@@ -1,7 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import FlexSearch from 'flexsearch';
+import ZXDBCredit from '../components/ZXDBCredit';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
+const ITEMS_PER_PAGE = 50;
+const SEARCH_DEBOUNCE_MS = 300;
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const SPECTRUM_COMPUTING_BASE_URL = 'https://spectrumcomputing.co.uk';
+
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // Using short keys from JSON
 interface Game {
@@ -16,18 +39,163 @@ interface Game {
   }[];
 }
 
+interface IndexEntry {
+  i: number;  // id
+  t: string;  // title
+  l: string;  // letter
+  p: number;  // page
+}
+
 interface PaginationInfo {
   p: number;  // pages
 }
 
+// Cache helper functions
+async function fetchWithCache<T>(url: string, cacheName: string = 'games-cache'): Promise<T> {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(url);
+
+  if (cachedResponse) {
+    const data = await cachedResponse.json();
+    const cacheTimestamp = parseInt(cachedResponse.headers.get('cache-timestamp') || '0');
+    
+    // Check if cache is still valid
+    if (Date.now() - cacheTimestamp < CACHE_DURATION_MS) {
+      return data;
+    }
+  }
+
+  // If no cache or expired, fetch fresh data
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+  
+  // Create a new response with timestamp
+  const data = await response.json();
+  const newResponse = new Response(JSON.stringify(data), {
+    headers: {
+      'content-type': 'application/json',
+      'cache-timestamp': Date.now().toString()
+    }
+  });
+  
+  await cache.put(url, newResponse.clone());
+  return data;
+}
+
+// Helper function to ensure URL has correct base
+function ensureBaseUrl(url: string): string {
+  if (url.startsWith('http')) return url;
+  return `${SPECTRUM_COMPUTING_BASE_URL}${url}`;
+}
+
+// Helper function to get running screen URL
+function getRunningScreenUrl(files: Game['f']): string | null {
+  const runningScreen = files.find(f => f.y === 'Running screen');
+  if (!runningScreen) return null;
+  return ensureBaseUrl(runningScreen.l);
+}
+
 export default function Games() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchInput, setSearchInput] = useState('');
   const [games, setGames] = useState<Game[]>([]);
+  const [searchResults, setSearchResults] = useState<IndexEntry[]>([]);
   const [paginationInfo, setPaginationInfo] = useState<PaginationInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchIndex = useRef<FlexSearch.Index | null>(null);
+  const indexData = useRef<IndexEntry[]>([]);
+
+  // Initialize FlexSearch index
+  useEffect(() => {
+    searchIndex.current = new FlexSearch.Index({
+      preset: "match",
+      tokenize: "forward",
+      cache: true
+    });
+  }, []);
+
+  // Debounce the search input
+  const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
+
+  // Get state from URL parameters
+  const selectedLetter = searchParams.get('letter');
+  const currentPage = parseInt(searchParams.get('page') || '1');
+
+  // Initialize search index with data
+  const initializeSearchIndex = useCallback(async () => {
+    if (!indexData.current.length) {
+      try {
+        const data = await fetchWithCache<IndexEntry[]>('/data/index.json');
+        indexData.current = data;
+        
+        // Add all titles to the search index
+        data.forEach((entry, idx) => {
+          searchIndex.current?.add(idx, entry.t);
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to initialize search index');
+      }
+    }
+  }, []);
+
+  // Handle search
+  const performSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Initialize index if needed
+      await initializeSearchIndex();
+
+      // Perform the search
+      const results = searchIndex.current?.search(query, {
+        limit: 100, // Limit results to prevent too many page fetches
+        suggest: true // Enable fuzzy search
+      }) as number[];
+
+      // Map results back to IndexEntries
+      const matchedEntries = results.map(idx => indexData.current[idx]);
+      setSearchResults(matchedEntries);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [initializeSearchIndex]);
+
+  // Effect for debounced search
+  useEffect(() => {
+    performSearch(debouncedSearch);
+  }, [debouncedSearch, performSearch]);
+
+  // Update URL when letter changes
+  const handleLetterClick = (letter: string | null) => {
+    if (letter === selectedLetter) {
+      // Deselecting current letter
+      searchParams.delete('letter');
+      searchParams.delete('page');
+    } else {
+      // Selecting new letter
+      searchParams.set('letter', letter || '');
+      searchParams.set('page', '1');
+    }
+    setSearchParams(searchParams);
+    setSearchInput(''); // Clear search input
+    setSearchResults([]); // Clear search results
+  };
+
+  // Update URL when page changes
+  const handlePageChange = (newPage: number) => {
+    searchParams.set('page', newPage.toString());
+    setSearchParams(searchParams);
+  };
 
   // Fetch games data when letter or page changes
   useEffect(() => {
@@ -42,17 +210,21 @@ export default function Games() {
       setError(null);
 
       try {
-        // Fetch pagination info first
-        const infoResponse = await fetch(`/data/${selectedLetter}/info.json`);
-        if (!infoResponse.ok) throw new Error('Failed to fetch pagination info');
-        const info: PaginationInfo = await infoResponse.json();
+        // Fetch pagination info with caching
+        const info = await fetchWithCache<PaginationInfo>(`/data/${selectedLetter}/info.json`);
         setPaginationInfo(info);
 
-        // Fetch games for current page
-        const gamesResponse = await fetch(`/data/${selectedLetter}/${currentPage}.json`);
-        if (!gamesResponse.ok) throw new Error('Failed to fetch games');
-        const gamesData: Game[] = await gamesResponse.json();
-        setGames(gamesData);
+        // Fetch games for current page with caching
+        const gamesData = await fetchWithCache<Game[]>(`/data/${selectedLetter}/${currentPage}.json`);
+        // Add base URL to all file links if needed
+        const processedGamesData = gamesData.map(game => ({
+          ...game,
+          f: game.f.map(file => ({
+            ...file,
+            l: ensureBaseUrl(file.l)
+          }))
+        }));
+        setGames(processedGamesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
         setGames([]);
@@ -62,25 +234,74 @@ export default function Games() {
       }
     }
 
-    fetchGames();
-  }, [selectedLetter, currentPage]);
-
-  // Reset to page 1 when letter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedLetter]);
-
-  // Format file size to human-readable format
-  const formatFileSize = (bytes: number): string => {
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
+    if (!searchInput) {
+      fetchGames();
     }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  };
+  }, [selectedLetter, currentPage, searchInput]);
+
+  // Fetch full game details for search results
+  useEffect(() => {
+    async function fetchSearchResultDetails() {
+      if (!searchResults.length) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Group results by letter and page
+        const gamesByLetterAndPage: Record<string, Record<number, IndexEntry[]>> = {};
+        searchResults.forEach(result => {
+          if (!gamesByLetterAndPage[result.l]) {
+            gamesByLetterAndPage[result.l] = {};
+          }
+          if (!gamesByLetterAndPage[result.l][result.p]) {
+            gamesByLetterAndPage[result.l][result.p] = [];
+          }
+          gamesByLetterAndPage[result.l][result.p].push(result);
+        });
+
+        // Fetch all required pages with caching
+        const allGames: Game[] = [];
+        for (const [letter, pages] of Object.entries(gamesByLetterAndPage)) {
+          for (const [page, _] of Object.entries(pages)) {
+            const pageGames = await fetchWithCache<Game[]>(`/data/${letter}/${page}.json`);
+            
+            // Process file URLs and filter only the games we want from this page
+            const wantedIds = new Set(gamesByLetterAndPage[letter][parseInt(page)].map(r => r.i));
+            const processedGames = pageGames.map(game => ({
+              ...game,
+              f: game.f.map(file => ({
+                ...file,
+                l: ensureBaseUrl(file.l)
+              }))
+            }));
+            const filteredGames = processedGames.filter(game => wantedIds.has(game.i));
+            allGames.push(...filteredGames);
+          }
+        }
+
+        // Sort games to match search results order
+        const sortedGames = allGames.sort((a, b) => {
+          const aIndex = searchResults.findIndex(r => r.i === a.i);
+          const bIndex = searchResults.findIndex(r => r.i === b.i);
+          return aIndex - bIndex;
+        });
+
+        setGames(sortedGames);
+        setPaginationInfo({ p: Math.ceil(sortedGames.length / ITEMS_PER_PAGE) });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setGames([]);
+        setPaginationInfo(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (searchResults.length) {
+      fetchSearchResultDetails();
+    }
+  }, [searchResults]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -94,23 +315,31 @@ export default function Games() {
 
       <h1 className="text-4xl font-bold mb-8 text-gray-100">ZX Spectrum Games</h1>
       
+      <ZXDBCredit />
+      
       {/* Search Box */}
       <div className="mb-8">
         <input
           type="text"
-          placeholder="Search games..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search games by title..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className="w-full max-w-xl px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100"
         />
+        {isLoading && searchInput && (
+          <div className="mt-2 text-gray-400 text-sm">
+            Searching...
+          </div>
+        )}
       </div>
 
       {/* Letter Navigation */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className={`flex flex-wrap gap-2 mb-8 ${searchInput ? 'opacity-50' : ''}`}>
         {LETTERS.map((letter) => (
           <button
             key={letter}
-            onClick={() => setSelectedLetter(letter === selectedLetter ? null : letter)}
+            onClick={() => handleLetterClick(letter)}
+            disabled={false}
             className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors
               ${letter === selectedLetter
                 ? 'bg-indigo-500 text-white'
@@ -136,31 +365,55 @@ export default function Games() {
         ) : games.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {games.map((game) => (
-                <Link
-                  key={game.i}
-                  to={`/games/${game.i}`}
-                  className="block bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors"
-                >
-                  <h3 className="text-lg font-semibold text-gray-100 mb-2 truncate" title={game.t}>{game.t}</h3>
-                  <div className="text-gray-300 text-sm">
-                    <p className="truncate">Genre: {game.g}</p>
-                    <p className="truncate">Machine: {game.m}</p>
-                    {game.f.length > 0 && (
-                      <div className="mt-2">
-                        <p className="font-semibold mb-1">Files: {game.f.length}</p>
-                      </div>
+              {games.map((game) => {
+                const runningScreenUrl = getRunningScreenUrl(game.f);
+                return (
+                  <Link
+                    key={game.i}
+                    to={`/games/${game.i}?letter=${selectedLetter || ''}&page=${currentPage}`}
+                    className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-64 group ${
+                      runningScreenUrl ? 'hover:shadow-xl' : 'bg-gray-700 hover:bg-gray-600'
+                    }`}
+                  >
+                    {runningScreenUrl && (
+                      <>
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-110"
+                          style={{ 
+                            backgroundImage: `url(${runningScreenUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        />
+                        <div 
+                          className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-gray-900/30"
+                        />
+                      </>
                     )}
-                  </div>
-                </Link>
-              ))}
+                    <div className="relative z-10">
+                      <h3 className="text-lg font-semibold text-gray-100 mb-2 truncate" title={game.t}>
+                        {game.t}
+                      </h3>
+                      <div className="text-gray-300 text-sm">
+                        <p className="truncate">Genre: {game.g}</p>
+                        <p className="truncate">Machine: {game.m}</p>
+                        {game.f.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-semibold mb-1">Files: {game.f.length}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Pagination */}
-            {paginationInfo && paginationInfo.p > 1 && (
+            {!searchInput && paginationInfo && paginationInfo.p > 1 && (
               <div className="flex justify-center items-center gap-2 p-4 border-t border-gray-700">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                 >
@@ -170,7 +423,7 @@ export default function Games() {
                   Page {currentPage} of {paginationInfo.p}
                 </span>
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(paginationInfo.p, prev + 1))}
+                  onClick={() => handlePageChange(Math.min(paginationInfo.p, currentPage + 1))}
                   disabled={currentPage === paginationInfo.p}
                   className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                 >
@@ -181,10 +434,10 @@ export default function Games() {
           </>
         ) : (
           <div className="p-8 text-center text-gray-300">
-            {selectedLetter ? (
+            {searchInput ? (
+              <p>No games found matching: {searchInput}</p>
+            ) : selectedLetter ? (
               <p>No games found for letter {selectedLetter === '_' ? '#' : selectedLetter}</p>
-            ) : searchQuery ? (
-              <p>No games found for: {searchQuery}</p>
             ) : (
               <p>Select a letter to view games</p>
             )}
