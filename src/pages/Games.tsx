@@ -110,11 +110,9 @@ export default function Games() {
   // Restore scroll position when returning
   useEffect(() => {
     const savedPosition = sessionStorage.getItem('gamesListScrollPosition');
-    console.log("Restoring scroll position", savedPosition);
     if (savedPosition && !isLoading) {
       window.scrollTo(0, parseInt(savedPosition));
       // sessionStorage.removeItem('gamesListScrollPosition');
-      console.log("Restoring scroll position", scrollPositionRef.current);
     }
   }, [isLoading]);
 
@@ -349,7 +347,6 @@ export default function Games() {
   const handleGameClick = () => {
     const scrollPosition = window.scrollY;
     sessionStorage.setItem('gamesListScrollPosition', scrollPosition.toString());
-    console.log("Saving scroll position", scrollPosition);
   };
 
   return (
