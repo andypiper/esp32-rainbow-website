@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
 import GameTile from '../components/GameTile';
@@ -88,28 +88,6 @@ async function fetchWithCache<T>(url: string, cacheName: string = 'games-cache')
 function ensureBaseUrl(url: string): string {
   if (url.startsWith('http')) return url;
   return `${SPECTRUM_COMPUTING_BASE_URL}${url}`;
-}
-
-// Helper function to get running screen URL
-async function getRunningScreenUrl(files: Game['f']): Promise<string | null> {
-  const runningScreen = files.find(f => f.y === 'Running screen');
-  if (!runningScreen) return null;
-  
-  const url = ensureBaseUrl(runningScreen.l);
-  
-  // If it's a SCR file, decode it
-  if (url.toLowerCase().endsWith('.scr')) {
-    try {
-      const screen = new SpectrumScreen();
-      await screen.loadFromUrl(url);
-      return screen.toDataURL();
-    } catch (error) {
-      console.error('Failed to decode SCR file:', error);
-      return url; // Fallback to original URL if decoding fails
-    }
-  }
-  
-  return url;
 }
 
 export default function Games() {
