@@ -50,10 +50,8 @@ export default function GameDetail() {
   const handleBack = () => {
     // Check if we can go back in history
     if (window.history.state && window.history.state.idx > 0) {
-      console.log("Using back button");
       navigate(-1);
     } else {
-      console.log("Using URL");
       // If we can't go back or came directly to this page, construct a URL
       const letter = searchParams.get('letter');
       const page = searchParams.get('page');

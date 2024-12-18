@@ -105,6 +105,18 @@ export default function Games() {
   const [error, setError] = useState<string | null>(null);
   const searchIndex = useRef<FlexSearch.Index | null>(null);
   const indexData = useRef<IndexEntry[]>([]);
+  const scrollPositionRef = useRef<number>(0);
+
+  // Restore scroll position when returning
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem('gamesListScrollPosition');
+    console.log("Restoring scroll position", savedPosition);
+    if (savedPosition && !isLoading) {
+      window.scrollTo(0, parseInt(savedPosition));
+      // sessionStorage.removeItem('gamesListScrollPosition');
+      console.log("Restoring scroll position", scrollPositionRef.current);
+    }
+  }, [isLoading]);
 
   // Initialize FlexSearch index
   useEffect(() => {
@@ -333,6 +345,13 @@ export default function Games() {
     }
   }, [searchResults]);
 
+  // Function to save scroll position
+  const handleGameClick = () => {
+    const scrollPosition = window.scrollY;
+    sessionStorage.setItem('gamesListScrollPosition', scrollPosition.toString());
+    console.log("Saving scroll position", scrollPosition);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Under Construction Banner */}
@@ -400,6 +419,7 @@ export default function Games() {
                 return (
                   <Link
                     key={game.i}
+                    onClick={handleGameClick}
                     to={`/games/${game.i}?${new URLSearchParams({
                       ...(selectedLetter ? { letter: selectedLetter } : {}),
                       ...(currentPage ? { page: currentPage.toString() } : {}),
