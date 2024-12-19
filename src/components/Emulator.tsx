@@ -20,8 +20,6 @@ declare global {
 }
 
 interface Props {
-  width?: number;
-  height?: number;
   file?: {
     name: string;
     data: Uint8Array;
@@ -29,7 +27,7 @@ interface Props {
   onError?: (error: string) => void;
 }
 
-export default function Emulator({ width = 640, height = 480, file, onError }: Props) {
+export default function Emulator({ file, onError }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
