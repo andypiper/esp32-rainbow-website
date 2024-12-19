@@ -12,7 +12,7 @@ function isPlayableFile(filename: string): boolean {
   return /\.(tap|tzx|z80)$/i.test(filename) || /\.(tap|tzx|z80)\.zip$/i.test(filename);
 }
 
-export default function FilesList({ game, formatFileSize, getFilenameFromUrl, onPlayFile }: Props) {
+export default function FilesList({ game, formatFileSize, getFilenameFromUrl/*, onPlayFile */}: Props) {
   return (
     <section id="files">
       <h2 className="text-xl font-semibold text-gray-100 mb-2">Download Files</h2>
