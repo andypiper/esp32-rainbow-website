@@ -34,15 +34,30 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl, on
                       <span className="text-gray-400">{formatFileSize(file.s)}</span>
                     )}
                     <div className="flex gap-2">
-                      {/* {canPlay && onPlayFile && (
-                        <button
-                          onClick={() => onPlayFile(file)}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                          aria-label={`Play ${file.y} version of ${game.t}`}
-                        >
-                          Play
-                        </button>
-                      )} */}
+                      {canPlay && (
+                        <>
+                          <button
+                            disabled
+                            className="group relative px-3 py-1 bg-green-600 text-white rounded opacity-50 cursor-not-allowed"
+                            aria-label={`Play ${file.y} version of ${game.t}`}
+                          >
+                            Play
+                            <span className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded whitespace-nowrap">
+                              Coming soon!
+                            </span>
+                          </button>
+                          <button
+                            disabled
+                            className="group relative px-3 py-1 bg-purple-600 text-white rounded opacity-50 cursor-not-allowed"
+                            aria-label={`Send ${file.y} version of ${game.t} to device`}
+                          >
+                            Send to device
+                            <span className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded whitespace-nowrap">
+                              ESP32 Rainbow support coming soon!
+                            </span>
+                          </button>
+                        </>
+                      )}
                       <a
                         href={ensureBaseUrl(file.l)}
                         className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
