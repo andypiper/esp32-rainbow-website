@@ -34,7 +34,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl, on
                       <span className="text-gray-400">{formatFileSize(file.s)}</span>
                     )}
                     <div className="flex gap-2">
-                      {canPlay && onPlayFile && (
+                      {/* {canPlay && onPlayFile && (
                         <button
                           onClick={() => onPlayFile(file)}
                           className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -42,7 +42,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl, on
                         >
                           Play
                         </button>
-                      )}
+                      )} */}
                       <a
                         href={ensureBaseUrl(file.l)}
                         className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
