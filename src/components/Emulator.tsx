@@ -27,7 +27,7 @@ interface Props {
   onError?: (error: string) => void;
 }
 
-export default function Emulator({ file, onError }: Props) {
+export default function Emulator({ file }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
