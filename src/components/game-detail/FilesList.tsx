@@ -1,4 +1,5 @@
 import { Game } from '../../types/game';
+import { ensureBaseUrl } from '../../utils/urls';
 
 interface Props {
   game: Game;
@@ -43,7 +44,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl, on
                         </button>
                       )}
                       <a
-                        href={file.l}
+                        href={ensureBaseUrl(file.l)}
                         className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
                         target="_blank"
                         rel="noopener noreferrer"
