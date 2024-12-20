@@ -57,8 +57,8 @@ function YouTubeFacade() {
   );
 }
 
-const handlePurchaseClick = (url: string) => {
-  console.log("******* handlePurchaseClick ***");
+const trackPurchaseClick = () => {
+  console.log("******* trackPurchaseClick ***");
   // // Set a timeout to ensure navigation happens even if tracking fails
   // const navigationTimeout = setTimeout(() => {
   //   console.log("******* navigationTimeout ***");
@@ -142,8 +142,8 @@ export default function Home() {
             href="https://www.crowdsupply.com/atomic14/esp32-rainbow"
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) => {
-              handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow');
+            onClick={() => {
+              trackPurchaseClick();
             }}
             className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
           >
