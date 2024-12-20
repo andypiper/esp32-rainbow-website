@@ -141,7 +141,7 @@ export default function Home() {
             onClick={() => handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow')}
               className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
           >
-              More Details
+              Pre-order now!
             </button>
             <Link
               to="/docs"
