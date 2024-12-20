@@ -58,6 +58,7 @@ function YouTubeFacade() {
 }
 
 const handlePurchaseClick = (url: string) => {
+  console.log("******* handlePurchaseClick ***");
   // Set a timeout to ensure navigation happens even if tracking fails
   const navigationTimeout = setTimeout(() => {
     console.log("******* navigationTimeout ***");
