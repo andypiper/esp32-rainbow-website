@@ -60,11 +60,13 @@ function YouTubeFacade() {
 const handlePurchaseClick = (url: string) => {
   // Set a timeout to ensure navigation happens even if tracking fails
   const navigationTimeout = setTimeout(() => {
+    console.log("******* navigationTimeout ***");
     window.open(url, '_blank', 'noopener,noreferrer');
   }, 1000);
 
   try {
     const callback = () => {
+      console.log("******* callback ***");
       clearTimeout(navigationTimeout);
       window.open(url, '_blank', 'noopener,noreferrer');
     };
@@ -80,6 +82,7 @@ const handlePurchaseClick = (url: string) => {
     // Facebook Pixel purchase tracking
     ReactPixel.track('Purchase', {currency: "USD", value: 20.00});
   } catch (error) {
+    console.log("******* error ***");
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
