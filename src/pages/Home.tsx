@@ -139,7 +139,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4">
           <button
             onClick={() => handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow')}
-              className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
+            onTouchEnd={(e) => {
+              e.preventDefault(); // Prevent any default touch behavior
+              handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow');
+            }}
+            className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
           >
               Pre-order now!
             </button>
