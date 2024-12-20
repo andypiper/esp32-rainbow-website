@@ -59,32 +59,32 @@ function YouTubeFacade() {
 
 const handlePurchaseClick = (url: string) => {
   console.log("******* handlePurchaseClick ***");
-  // Set a timeout to ensure navigation happens even if tracking fails
-  const navigationTimeout = setTimeout(() => {
-    console.log("******* navigationTimeout ***");
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, 1000);
+  // // Set a timeout to ensure navigation happens even if tracking fails
+  // const navigationTimeout = setTimeout(() => {
+  //   console.log("******* navigationTimeout ***");
+  //   window.open(url, '_blank', 'noopener,noreferrer');
+  // }, 1000);
 
   try {
-    const callback = () => {
-      console.log("******* callback ***");
-      clearTimeout(navigationTimeout);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    };
+    // const callback = () => {
+    //   console.log("******* callback ***");
+    //   clearTimeout(navigationTimeout);
+    //   window.open(url, '_blank', 'noopener,noreferrer');
+    // };
 
     // Google Analytics conversion tracking
     gtag('event', 'conversion', {
       'send_to': 'AW-627599899/MGUjCMW13PcZEJvUoasC',
       'value': 20.0,
       'currency': 'USD',
-      'event_callback': callback
+      'event_callback': null
     });
 
     // Facebook Pixel purchase tracking
     ReactPixel.track('Purchase', {currency: "USD", value: 20.00});
   } catch (error) {
     console.log("******* error ***");
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   return false;
@@ -138,16 +138,17 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center py-8">
         <div className="text-center max-w-4xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4">
-          <button
-            onClick={() => handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow')}
-            onTouchEnd={(e) => {
-              e.preventDefault(); // Prevent any default touch behavior
+          <a
+            href="https://www.crowdsupply.com/atomic14/esp32-rainbow"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
               handlePurchaseClick('https://www.crowdsupply.com/atomic14/esp32-rainbow');
             }}
             className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-150"
           >
-              Pre-order now!
-            </button>
+            Pre-order now!
+          </a>
             <Link
               to="/docs"
               className="w-full sm:w-auto inline-block px-8 py-3 text-lg font-medium text-indigo-600 border-2 border-indigo-600 rounded-md hover:bg-indigo-50 transition-colors duration-150"
