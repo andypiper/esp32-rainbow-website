@@ -10,7 +10,7 @@ interface EmscriptenModule {
   print: (text: string) => void;
   printErr: (text: string) => void;
   locateFile?: (path: string, prefix: string) => string;
-  loadDroppedFile?: (filename: string, arrayBuffer: ArrayBuffer) => void;
+  loadDroppedFile?: (filename: string, arrayBuffer: ArrayBuffer, is128k: boolean) => void;
   stop?: () => void;
   requestFullscreen?: () => void;
 }
