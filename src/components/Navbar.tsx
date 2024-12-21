@@ -11,7 +11,7 @@ type NavItem = {
 const navigationItems: NavItem[] = [
   {
     to: '/games',
-    label: 'Games',
+    label: 'Play Games',
     icon: (
       <path 
         strokeLinecap="round" 
