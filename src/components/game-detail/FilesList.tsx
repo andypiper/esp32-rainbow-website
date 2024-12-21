@@ -31,7 +31,8 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
 
   const getEmulatorUrl = (file: Game['f'][0]) => {
     const proxyUrl = getProxyUrl(file.l);
-    return `/emulator?file=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(game.t)}`;
+    const machineType = game.m === 'ZX-Spectrum 48K' ? '48k' : '128k';
+    return `/emulator?file=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(game.t)}&machine=${machineType}`;
   };
 
   const playableFiles = game.f.filter(isPlayableFile);

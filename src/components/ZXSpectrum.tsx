@@ -25,6 +25,7 @@ interface Props {
   file?: {
     name: string;
     data: Uint8Array;
+    is128k: boolean;
   };
   onError?: (error: string) => void;
   title: string;
@@ -63,7 +64,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
             setIsInitialized(true);
             window.setTimeout(() => {
               if (file) {
-                window.Module.loadDroppedFile?.(file.name, file.data);
+                window.Module.loadDroppedFile?.(file.name, file.data, file.is128k);
               }
             }, 100);
           }

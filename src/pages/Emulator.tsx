@@ -6,12 +6,12 @@ import ZXSpectrum from '../components/ZXSpectrum';
 
 export default function EmulatorPopup() {
   const [searchParams] = useSearchParams();
-  const [gameData, setGameData] = useState<{name: string; data: Uint8Array} | null>(null);
+  const [gameData, setGameData] = useState<{name: string; data: Uint8Array, is128k: boolean} | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const title = searchParams.get('title');
-  console.log(title);
+  const machine = searchParams.get('machine');
 
   useEffect(() => {
     async function loadGameFile() {
@@ -50,7 +50,8 @@ export default function EmulatorPopup() {
 
         setGameData({
           name: gameFile,
-          data: content
+          data: content,
+          is128k: machine === '128k',
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load game');
