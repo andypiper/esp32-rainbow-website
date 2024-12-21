@@ -91,7 +91,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
 
       // Load the emulator script
       const script = document.createElement('script');
-      script.src = '/wasm/zx_emulator.js';
+      script.src = '/wasm/zx_emulator2.js';
       script.async = false;
       script.onerror = (err) => {
         console.error('Failed to load emulator script:', err);
