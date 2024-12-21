@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Game } from '../../types/game';
-import { getProxyUrl } from '../../utils/urls';
+import { ensureBaseUrl, getProxyUrl } from '../../utils/urls';
 
 interface Props {
   game: Game;
@@ -105,7 +105,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                     </td>
                     <td className="px-4 py-2 text-right space-x-2">
                       <a
-                        href={file.l}
+                        href={ensureBaseUrl(file.l)}
                         className="inline-block px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-500 transition-colors"
                         target="_blank"
                         rel="noopener noreferrer"
