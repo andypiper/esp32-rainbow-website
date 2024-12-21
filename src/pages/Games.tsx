@@ -400,14 +400,15 @@ export default function Games() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
               {games.map((game) => (
-                <GameTile
-                  key={game.i}
-                  game={game}
-                  selectedLetter={selectedLetter}
-                  currentPage={currentPage}
-                  searchInput={searchInput}
-                  onGameClick={handleGameClick}
-                />
+                <div key={game.i} className="aspect-[4/3]">
+                  <GameTile
+                    game={game}
+                    selectedLetter={selectedLetter}
+                    currentPage={currentPage}
+                    searchInput={searchInput}
+                    onGameClick={handleGameClick}
+                  />
+                </div>
               ))}
             </div>
 

@@ -6,7 +6,6 @@ import StarRating from '../components/StarRating';
 import { SpectrumScreen } from '../utils/SpectrumScreen';
 import ImageGallery from '../components/game-detail/ImageGallery';
 import FilesList from '../components/game-detail/FilesList';
-import GamePlayer from '../components/game-detail/GamePlayer';
 import { Game } from '../types/game';
 import { ensureBaseUrl, getFilenameFromUrl } from '../utils/urls';
 
@@ -37,7 +36,6 @@ export default function GameDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scrImages, setScrImages] = useState<Record<string, string>>({});
-  const [selectedFile, setSelectedFile] = useState<Game['f'][0] | null>(null);
 
   // Handle back navigation
   const handleBack = () => {
@@ -239,25 +237,16 @@ export default function GameDetail() {
 
             <ZXDBCredit />
             
-            <ImageGallery 
-              game={game}
-              getDisplayUrl={getDisplayUrl}
-              isScrFile={isScrFile}
-            />
-
-            {selectedFile && (
-              <GamePlayer
-                file={selectedFile}
-                game={game}
-                onClose={() => setSelectedFile(null)}
-              />
-            )}
-
             <FilesList 
               game={game}
               formatFileSize={formatFileSize}
               getFilenameFromUrl={getFilenameFromUrl}
-              onPlayFile={setSelectedFile}
+            />
+
+            <ImageGallery 
+              game={game}
+              getDisplayUrl={getDisplayUrl}
+              isScrFile={isScrFile}
             />
           </div>
         </article>

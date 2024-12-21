@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "prepare": "husky install",
     "dev:worker": "wrangler dev",
-    "dev:vite": "vite"
+    "dev:vite": "vite --host"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

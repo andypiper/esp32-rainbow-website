@@ -71,7 +71,7 @@ export default function GameTile({
         ...(currentPage ? { page: currentPage.toString() } : {}),
         ...(searchInput ? { search: searchInput } : {})
       }).toString()}`}
-      className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-64 group ${
+      className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-full group ${
         screenUrl ? 'hover:shadow-xl' : 'bg-gray-700 hover:bg-gray-600'
       }`}
     >

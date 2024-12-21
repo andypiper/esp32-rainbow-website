@@ -1,82 +1,135 @@
+import { useState, useEffect } from 'react';
 import { Game } from '../../types/game';
-import { ensureBaseUrl } from '../../utils/urls';
+import { getProxyUrl } from '../../utils/urls';
 
 interface Props {
   game: Game;
   formatFileSize: (bytes: number) => string;
   getFilenameFromUrl: (url: string) => string;
-  onPlayFile?: (file: Game['f'][0]) => void;
 }
 
-function isPlayableFile(filename: string): boolean {
-  return /\.(tap|tzx|z80)$/i.test(filename) || /\.(tap|tzx|z80)\.zip$/i.test(filename);
-}
+type TabType = 'playable' | 'images' | 'other';
 
-export default function FilesList({ game, formatFileSize, getFilenameFromUrl/*, onPlayFile */}: Props) {
+export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: Props) {
+  const [activeTab, setActiveTab] = useState<TabType>('playable');
+
+  const isPlayableFile = (file: Game['f'][0]) => {
+    const ext = getFilenameFromUrl(file.l).split('.').pop()?.toLowerCase();
+    return ext === 'zip';
+  };
+
+  const isImageFile = (file: Game['f'][0]) => {
+    const ext = getFilenameFromUrl(file.l).split('.').pop()?.toLowerCase();
+    return ext === 'scr' || ext === 'gif' || ext === 'png' || ext === 'jpg' || ext === 'jpeg';
+  };
+
+  const getEmulatorUrl = (file: Game['f'][0]) => {
+    const proxyUrl = getProxyUrl(file.l);
+    return `/emulator?file=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(game.t)}`;
+  };
+
+  const playableFiles = game.f.filter(isPlayableFile);
+  const imageFiles = game.f.filter(isImageFile);
+  const otherFiles = game.f.filter(f => !isPlayableFile(f) && !isImageFile(f));
+
+  useEffect(() => {
+    if (playableFiles.length > 0) {
+      setActiveTab('playable');
+    } else if (imageFiles.length > 0) {
+      setActiveTab('images');
+    } else if (otherFiles.length > 0) {
+      setActiveTab('other');
+    }
+  }, []);
+
+  const currentFiles = {
+    playable: playableFiles,
+    images: imageFiles,
+    other: otherFiles,
+  }[activeTab];
+
+  const tabs = [
+    { id: 'playable', label: 'Playable', count: playableFiles.length },
+    { id: 'images', label: 'Images', count: imageFiles.length },
+    { id: 'other', label: 'Other Files', count: otherFiles.length },
+  ].filter(tab => tab.count > 0);
+
+  if (tabs.length === 0) return null;
+
   return (
-    <section id="files">
-      <h2 className="text-xl font-semibold text-gray-100 mb-2">Download Files</h2>
-      <div className="bg-gray-700 rounded-lg p-4">
-        {game.f.length > 0 ? (
-          <ul className="space-y-2" role="list">
-            {game.f.map((file, index) => {
-              const filename = getFilenameFromUrl(file.l);
-              const canPlay = isPlayableFile(filename);
+    <section id="files" className="mt-8">
+      <h2 className="text-xl font-semibold text-gray-100 mb-4">Files</h2>
+      
+      {/* Entire file list container with background */}
+      <div className="bg-gray-850 rounded-lg p-4">
+        {/* Tabs */}
+        <div>
+          <nav className="flex" aria-label="Files">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`
+                  px-4 py-2 text-sm transition-colors relative rounded-bl-none rounded-br-none
+                  ${activeTab === tab.id
+                    ? 'bg-gray-900 text-gray-100 font-medium'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-850 hover:text-gray-300'
+                  }
+                `}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </nav>
 
-              return (
-                <li key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex flex-col">
-                    <span className="text-gray-300">{file.y}</span>
-                    <span className="text-sm text-gray-400">{filename}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {file.s && (
-                      <span className="text-gray-400">{formatFileSize(file.s)}</span>
-                    )}
-                    <div className="flex gap-2">
-                      {canPlay && (
-                        <>
-                          <button
-                            disabled
-                            className="group relative px-3 py-1 bg-green-600 text-white rounded opacity-50 cursor-not-allowed"
-                            aria-label={`Play ${file.y} version of ${game.t}`}
-                          >
-                            Play
-                            <span className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded whitespace-nowrap">
-                              Coming soon!
-                            </span>
-                          </button>
-                          <button
-                            disabled
-                            className="group relative px-3 py-1 bg-purple-600 text-white rounded opacity-50 cursor-not-allowed"
-                            aria-label={`Send ${file.y} version of ${game.t} to device`}
-                          >
-                            Send to device
-                            <span className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded whitespace-nowrap">
-                              ESP32 Rainbow support coming soon!
-                            </span>
-                          </button>
-                        </>
-                      )}
+          {/* File List */}
+          <div className="bg-gray-900 rounded-lg rounded-tl-none overflow-hidden">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gray-900">
+                  <th className="px-4 py-2 text-left text-gray-200">Filename</th>
+                  <th className="px-4 py-2 text-left text-gray-200">Type</th>
+                  <th className="px-4 py-2 text-left text-gray-200">Size</th>
+                  <th className="px-4 py-2 text-right text-gray-200">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {currentFiles.map((file, index) => (
+                  <tr key={index} className="hover:bg-gray-750">
+                    <td className="px-4 py-2 text-gray-300">
+                      {getFilenameFromUrl(file.l)}
+                    </td>
+                    <td className="px-4 py-2 text-gray-300">{file.y}</td>
+                    <td className="px-4 py-2 text-gray-300">
+                      {formatFileSize(file.s || 0)}
+                    </td>
+                    <td className="px-4 py-2 text-right space-x-2">
                       <a
-                        href={ensureBaseUrl(file.l)}
-                        className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                        href={file.l}
+                        className="inline-block px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-500 transition-colors"
                         target="_blank"
                         rel="noopener noreferrer"
-                        download
-                        aria-label={`Download ${file.y} version of ${game.t}`}
                       >
                         Download
                       </a>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-gray-300">No files available</p>
-        )}
+                      {isPlayableFile(file) && (
+                        <a
+                          href={getEmulatorUrl(file)}
+                          className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Opens in a new tab"
+                        >
+                          Play
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   );
