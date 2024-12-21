@@ -77,7 +77,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
         },
         locateFile: (path: string, prefix: string) => {
           if (path.endsWith('.wasm')) {
-            return '/wasm/zx_emulator.wasm';
+            return '/wasm/zx_emulator2.wasm';
           }
           return prefix + path;
         }
