@@ -14,13 +14,18 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
   const [activeTab, setActiveTab] = useState<TabType>('playable');
 
   const isPlayableFile = (file: Game['f'][0]) => {
-    const ext = getFilenameFromUrl(file.l).split('.').pop()?.toLowerCase();
-    return ext === 'zip';
+    const filename = getFilenameFromUrl(file.l).toLowerCase();
+    return filename.endsWith('.zip');
   };
 
   const isImageFile = (file: Game['f'][0]) => {
     const ext = getFilenameFromUrl(file.l).split('.').pop()?.toLowerCase();
     return ext === 'scr' || ext === 'gif' || ext === 'png' || ext === 'jpg' || ext === 'jpeg';
+  };
+
+  const isUnsupportedFile = (file: Game['f'][0]) => {
+    const filename = getFilenameFromUrl(file.l).toLowerCase();
+    return filename.endsWith('z80.zip') || filename.endsWith('dsk.zip');
   };
 
   const getEmulatorUrl = (file: Game['f'][0]) => {
@@ -112,16 +117,23 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                       >
                         Download
                       </a>
-                      {isPlayableFile(file) && (
-                        <a
-                          href={getEmulatorUrl(file)}
-                          className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Opens in a new tab"
+                      {(isPlayableFile(file) || isUnsupportedFile(file)) && (
+                        <button
+                          disabled={isUnsupportedFile(file)}
+                          className={`
+                            inline-block px-3 py-1 text-white text-sm rounded transition-colors
+                            group relative
+                            ${isUnsupportedFile(file)
+                              ? 'bg-gray-600 cursor-not-allowed opacity-60'
+                              : 'bg-green-600 hover:bg-green-500'
+                            }
+                          `}
                         >
+                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity duration-100 z-100">
+                            {isUnsupportedFile(file) ? "Z80/DSK support coming soon!" : "Opens in a new tab"}
+                          </span>
                           Play
-                        </a>
+                        </button>
                       )}
                     </td>
                   </tr>
