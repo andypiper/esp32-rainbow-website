@@ -1,6 +1,6 @@
 export default function ZXDBCredit() {
   return (
-    <div className="bg-gray-700/50 rounded-lg p-3 mb-6 text-center">
+    <div className="bg-gray-700/50 rounded-bl-lg rounded-br-lg p-3 mb-6 text-center">
       <p className="text-sm text-gray-300">
         Data provided by{' '}
         <a 
