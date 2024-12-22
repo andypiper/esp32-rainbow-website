@@ -234,8 +234,6 @@ export default function GameDetail() {
                 ) : null}
               </dl>
             </section>
-
-            <ZXDBCredit />
             
             <FilesList 
               game={game}
@@ -249,6 +247,7 @@ export default function GameDetail() {
               isScrFile={isScrFile}
             />
           </div>
+          <ZXDBCredit />
         </article>
       </main>
     </>
