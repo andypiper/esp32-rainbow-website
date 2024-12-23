@@ -35,7 +35,7 @@ export default function EmulatorPopup() {
         // Find the relevant file in the ZIP
         const files = Object.keys(zip.files);
         const gameFile = files.find(name => 
-          /\.(tap|tzx|z80)$/i.test(name)
+          /\.(tap|tzx|z80|sna)$/i.test(name)
         );
         
         if (!gameFile) {

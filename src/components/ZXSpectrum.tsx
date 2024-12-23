@@ -77,7 +77,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
         },
         locateFile: (path: string, prefix: string) => {
           if (path.endsWith('.wasm')) {
-            return '/wasm/zx_emulator2.wasm';
+            return '/wasm/zx_emulator3.wasm';
           }
           return prefix + path;
         }
@@ -91,7 +91,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
 
       // Load the emulator script
       const script = document.createElement('script');
-      script.src = '/wasm/zx_emulator2.js';
+      script.src = '/wasm/zx_emulator3.js';
       script.async = false;
       script.onerror = (err) => {
         console.error('Failed to load emulator script:', err);

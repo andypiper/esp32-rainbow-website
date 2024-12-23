@@ -10,8 +10,8 @@ interface Props {
 
 type TabType = 'playable' | 'images' | 'other';
 
-const PLAYABLE = ['tap.zip', 'tzx.zip', 'z80.zip'];
-const SUPPORTED_NOW = ['tap.zip', 'tzx.zip'];
+const PLAYABLE = ['tap.zip', 'tzx.zip', 'z80.zip', 'sna.zip'];
+const SUPPORTED_NOW = ['tap.zip', 'tzx.zip', 'z80.zip', 'sna.zip'];
 
 export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('playable');
