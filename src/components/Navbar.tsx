@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import Banner from './Banner'
 
 type NavItem = {
   to: string
@@ -120,6 +121,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700 shadow-lg" role="navigation" aria-label="Main navigation">
+      <Banner />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link 
