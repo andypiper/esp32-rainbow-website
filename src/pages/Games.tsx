@@ -7,7 +7,7 @@ import { ensureBaseUrl } from '../utils/urls';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 500;
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 // Custom debounce hook
@@ -53,7 +53,11 @@ interface PaginationInfo {
 }
 
 // Cache helper functions
-async function fetchWithCache<T>(url: string, cacheName: string = 'games-cache'): Promise<T> {
+async function fetchWithCache<T>(
+  url: string, 
+  cacheName: string = 'games-cache',
+  signal?: AbortSignal
+): Promise<T> {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(url);
 
@@ -61,17 +65,15 @@ async function fetchWithCache<T>(url: string, cacheName: string = 'games-cache')
     const data = await cachedResponse.json();
     const cacheTimestamp = parseInt(cachedResponse.headers.get('cache-timestamp') || '0');
     
-    // Check if cache is still valid
     if (Date.now() - cacheTimestamp < CACHE_DURATION_MS) {
       return data;
     }
   }
 
-  // If no cache or expired, fetch fresh data
-  const response = await fetch(url);
+  // Pass the signal to fetch
+  const response = await fetch(url, { signal });
   if (!response.ok) throw new Error(`Failed to fetch ${url}`);
   
-  // Create a new response with timestamp
   const data = await response.json();
   const newResponse = new Response(JSON.stringify(data), {
     headers: {
@@ -94,6 +96,7 @@ export default function Games() {
   const [error, setError] = useState<string | null>(null);
   const searchIndex = useRef<FlexSearch.Index | null>(null);
   const indexData = useRef<IndexEntry[]>([]);
+  const currentFetchController = useRef<AbortController | null>(null);
 
   // Restore scroll position when returning
   useEffect(() => {
@@ -265,6 +268,13 @@ export default function Games() {
     async function fetchSearchResultDetails() {
       if (!searchResults.length) return;
 
+      // Cancel any ongoing requests
+      if (currentFetchController.current) {
+        currentFetchController.current.abort();
+      }
+      // Create new controller for this request
+      currentFetchController.current = new AbortController();
+
       setIsLoading(true);
       setError(null);
 
@@ -285,7 +295,11 @@ export default function Games() {
         const allGames: Game[] = [];
         for (const [letter, pages] of Object.entries(gamesByLetterAndPage)) {
           for (const [page, _] of Object.entries(pages)) {
-            const pageGames = await fetchWithCache<Game[]>(`/data/${letter}/${page}.json`);
+            const pageGames = await fetchWithCache<Game[]>(
+              `/data/${letter}/${page}.json`,
+              'games-cache',
+              currentFetchController.current.signal
+            );
             
             // Process file URLs and filter only the games we want from this page
             const wantedIds = new Set(gamesByLetterAndPage[letter][parseInt(page)].map(r => r.i));
@@ -311,7 +325,10 @@ export default function Games() {
         setGames(sortedGames);
         setPaginationInfo({ p: Math.ceil(sortedGames.length / ITEMS_PER_PAGE) });
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        // Only set error if it's not an abort error
+        if (err instanceof Error && err.name !== 'AbortError') {
+          setError(err.message);
+        }
         setGames([]);
         setPaginationInfo(null);
       } finally {
@@ -322,6 +339,14 @@ export default function Games() {
     if (searchResults.length) {
       fetchSearchResultDetails();
     }
+
+    // Cleanup function to abort any pending requests when component unmounts
+    // or when searchResults changes
+    return () => {
+      if (currentFetchController.current) {
+        currentFetchController.current.abort();
+      }
+    };
   }, [searchResults]);
 
   // Function to save scroll position
