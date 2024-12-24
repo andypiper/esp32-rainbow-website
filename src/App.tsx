@@ -12,7 +12,6 @@ import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
-import Banner from './components/Banner'
 
 // Create a new component to handle route changes and layout
 function Layout() {
