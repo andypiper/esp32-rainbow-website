@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Banner from '../components/Banner';
 import ZXSpectrum from '../components/ZXSpectrum';
+import Keyboard from '../components/emulator/keyboard';
 
 export default function EmulatorPopup() {
   const [searchParams] = useSearchParams();
@@ -120,6 +121,7 @@ export default function EmulatorPopup() {
             <p className="text-gray-400 mt-4 text-sm">
               Close this tab to return to the game details
             </p>
+            <Keyboard />
           </div>
         </div>
       </div>
