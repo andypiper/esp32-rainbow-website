@@ -5,14 +5,12 @@ function Key({ name, image, onUpdateKey }: { name: string, image: string, onUpda
   const [pressed, setPressed] = useState(false);
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
-    console.log(`Key ${name} pressed`);
     setPressed(true);
     onUpdateKey(name, true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
-    console.log(`Key ${name} released`);
     setPressed(false);
     onUpdateKey(name, false);
   };
@@ -24,8 +22,15 @@ function Key({ name, image, onUpdateKey }: { name: string, image: string, onUpda
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
+        touchAction: 'none'
+      }}
     >
-      <img src={image} alt={name} className={className} />
+      <img src={image} alt={name} className={className} draggable="false" />
     </div>
   );
 }
