@@ -1,23 +1,29 @@
+import { useState } from 'react';
 import keys from './keydefs';
 
 function Key({ name, image }: { name: string, image: string }) {
+  const [pressed, setPressed] = useState(false);
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     console.log(`Key ${name} pressed`);
+    setPressed(true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     console.log(`Key ${name} released`);
+    setPressed(false);
   };
+
+  const className = "w-full h-full" + (pressed ? ' opacity-50' : '');
 
   return (
     <div
-      className="w-[10%] p-[1%]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
-      <img src={image} alt={name} className="w-full h-full" />
+      <img src={image} alt={name} className={className} />
     </div>
   );
 }
