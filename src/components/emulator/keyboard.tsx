@@ -3,6 +3,8 @@ import keys from './keydefs';
 
 function Key({ name, image, onUpdateKey }: { name: string, image: string, onUpdateKey: (key: string, pressed: boolean) => void }) {
   const [pressed, setPressed] = useState(false);
+
+  // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     setPressed(true);
@@ -15,22 +17,54 @@ function Key({ name, image, onUpdateKey }: { name: string, image: string, onUpda
     onUpdateKey(name, false);
   };
 
+  // Mouse handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setPressed(true);
+    onUpdateKey(name, true);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setPressed(false);
+    onUpdateKey(name, false);
+  };
+
+  // Handle mouse leaving the element while pressed
+  const handleMouseLeave = () => {
+    if (pressed) {
+      setPressed(false);
+      onUpdateKey(name, false);
+    }
+  };
+
   const className = "w-full h-full" + (pressed ? ' opacity-50' : '');
 
   return (
     <div
+      // Touch events
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      // Mouse events
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       onContextMenu={(e) => e.preventDefault()}
       style={{
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
         userSelect: 'none',
-        touchAction: 'none'
+        touchAction: 'none',
+        cursor: 'pointer' // Add pointer cursor for desktop
       }}
     >
-      <img src={image} alt={name} className={className} draggable="false" />
+      <img 
+        src={image} 
+        alt={name} 
+        className={className} 
+        draggable="false"
+      />
     </div>
   );
 }
