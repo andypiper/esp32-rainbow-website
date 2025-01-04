@@ -13,6 +13,7 @@ interface EmscriptenModule {
   loadDroppedFile?: (filename: string, arrayBuffer: ArrayBuffer, is128k: boolean) => void;
   stop?: () => void;
   requestFullscreen?: () => void;
+  updateKey?: (key: string, pressed: boolean) => void;
 }
 
 declare global {
@@ -29,9 +30,10 @@ interface Props {
   };
   onError?: (error: string) => void;
   title: string;
+  onUpdateKey?: (key: string, pressed: boolean) => void;
 }
 
-export default function ZXSpectrum({ file, onError, title }: Props) {
+export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
@@ -77,7 +79,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
         },
         locateFile: (path: string, prefix: string) => {
           if (path.endsWith('.wasm')) {
-            return '/wasm/zx_emulator3.wasm';
+            return '/wasm/zx_emulator4.wasm';
           }
           return prefix + path;
         }
@@ -91,7 +93,7 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
 
       // Load the emulator script
       const script = document.createElement('script');
-      script.src = '/wasm/zx_emulator3.js';
+      script.src = '/wasm/zx_emulator4.js';
       script.async = false;
       script.onerror = (err) => {
         console.error('Failed to load emulator script:', err);
@@ -112,13 +114,17 @@ export default function ZXSpectrum({ file, onError, title }: Props) {
       initEmulator();
     }
 
+    if (isInitialized && onUpdateKey) {
+      window.Module.updateKey = onUpdateKey;
+    }
+
     return () => {
       if (window.Module?.stop && isInitialized) {
         console.log("Stopping emulator");
         window.Module.stop();
       }
     };
-  }, [showPlayButton, isInitialized, canvasRef.current]);
+  }, [showPlayButton, isInitialized, canvasRef.current, onUpdateKey]);
 
   useEffect(() => {
     const originalTitle = document.title;

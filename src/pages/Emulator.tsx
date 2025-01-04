@@ -64,6 +64,12 @@ export default function EmulatorPopup() {
     loadGameFile();
   }, [searchParams]);
 
+  const updateKey = (key: string, pressed: boolean) => {
+    if (window.Module?.updateKey) {
+      window.Module.updateKey(key, pressed);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -113,7 +119,7 @@ export default function EmulatorPopup() {
                   </div>
                 )}
                 
-                {gameData && <ZXSpectrum file={gameData} title={title || ''} />}
+                {gameData && <ZXSpectrum file={gameData} title={title || ''} onUpdateKey={updateKey} />}
               </div>
             </div>
             
@@ -123,7 +129,7 @@ export default function EmulatorPopup() {
             </p>
             {/* Make keyboard full width */}
             <div className="w-full max-w-[640px]">
-              <Keyboard />
+              <Keyboard onUpdateKey={updateKey} />
             </div>
           </div>
         </div>

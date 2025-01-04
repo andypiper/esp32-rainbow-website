@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import keys from './keydefs';
 
-function Key({ name, image }: { name: string, image: string }) {
+function Key({ name, image, onUpdateKey }: { name: string, image: string, onUpdateKey: (key: string, pressed: boolean) => void }) {
   const [pressed, setPressed] = useState(false);
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     console.log(`Key ${name} pressed`);
     setPressed(true);
+    onUpdateKey(name, true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     console.log(`Key ${name} released`);
     setPressed(false);
+    onUpdateKey(name, false);
   };
 
   const className = "w-full h-full" + (pressed ? ' opacity-50' : '');
@@ -28,13 +30,13 @@ function Key({ name, image }: { name: string, image: string }) {
   );
 }
 
-export default function Keyboard() {
+export default function Keyboard({ onUpdateKey }: { onUpdateKey: (key: string, pressed: boolean) => void }) {
   return (
     <div className="w-full mt-4">
       {keys.map((row, index) => (
         <div key={index} className="flex flex-row items-center justify-center w-full">
           {row.map((key) => (
-            <Key key={key.name} name={key.name} image={key.image} />
+            <Key key={key.name} name={key.name} image={key.image} onUpdateKey={onUpdateKey} />
           ))}
         </div>
       ))}
