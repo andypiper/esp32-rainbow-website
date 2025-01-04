@@ -2,7 +2,7 @@ import keys from './keydefs';
 
 function Key({ name, image }: { name: string, image: string }) {
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent default to avoid unwanted behaviors
+    e.preventDefault();
     console.log(`Key ${name} pressed`);
   };
 
@@ -13,7 +13,7 @@ function Key({ name, image }: { name: string, image: string }) {
 
   return (
     <div
-      className=""
+      className="w-[10%] p-[1%]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -23,13 +23,15 @@ function Key({ name, image }: { name: string, image: string }) {
 }
 
 export default function Keyboard() {
-  return <div className="flex flex-col items-center justify-center">
-    {keys.map((row, index) => (
-      <div key={index} className="flex flex-row items-center justify-center">
-        {row.map((key) => (
-          <Key key={key.name} name={key.name} image={key.image} />
-        ))}
-      </div>
-    ))}
-  </div>
+  return (
+    <div className="w-full mt-4">
+      {keys.map((row, index) => (
+        <div key={index} className="flex flex-row items-center justify-center w-full">
+          {row.map((key) => (
+            <Key key={key.name} name={key.name} image={key.image} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }

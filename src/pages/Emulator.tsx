@@ -70,9 +70,9 @@ export default function EmulatorPopup() {
         <title>{title ? `${title} - ZX Spectrum Emulator` : 'ZX Spectrum Emulator'}</title>
       </Helmet>
       <Banner />
-      <div className="min-h-screen bg-gray-900 p-8">
-        {/* Center container with max width for text content */}
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-gray-900 p-4 sm:p-8">
+        {/* Make the container full width on mobile */}
+        <div className="w-full max-w-3xl mx-auto">
           {/* Title */}
           <h1 className="text-3xl font-bold text-white mb-6">
             {title || 'ZX Spectrum Emulator'}
@@ -91,8 +91,8 @@ export default function EmulatorPopup() {
 
           {/* Fixed-width container for emulator, centered */}
           <div className="flex justify-center flex-col items-center">
-            <div className="w-[640px] bg-black rounded-xl overflow-hidden shadow-2xl">
-              <div className="relative h-[480px]">
+            <div className="w-full max-w-[640px] bg-black rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative aspect-[4/3]">
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -121,7 +121,10 @@ export default function EmulatorPopup() {
             <p className="text-gray-400 mt-4 text-sm">
               Close this tab to return to the game details
             </p>
-            <Keyboard />
+            {/* Make keyboard full width */}
+            <div className="w-full max-w-[640px]">
+              <Keyboard />
+            </div>
           </div>
         </div>
       </div>

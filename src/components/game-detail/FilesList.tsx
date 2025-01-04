@@ -91,50 +91,90 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
 
           {/* File List */}
           <div className="bg-gray-900 rounded-lg rounded-tl-none overflow-hidden">
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-gray-900">
-                  <th className="px-4 py-2 text-left text-gray-200">Filename</th>
-                  <th className="px-4 py-2 text-left text-gray-200">Type</th>
-                  <th className="px-4 py-2 text-left text-gray-200">Size</th>
-                  <th className="px-4 py-2 text-right text-gray-200">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {currentFiles.map((file, index) => (
-                  <tr key={index} className="hover:bg-gray-750">
-                    <td className="px-4 py-2 text-gray-300">
-                      {getFilenameFromUrl(file.l)}
-                    </td>
-                    <td className="px-4 py-2 text-gray-300">{file.y}</td>
-                    <td className="px-4 py-2 text-gray-300">
-                      {formatFileSize(file.s || 0)}
-                    </td>
-                    <td className="px-4 py-2 text-right space-x-2">
-                      <a
-                        href={ensureBaseUrl(file.l)}
-                        className="inline-block px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-500 transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Download
-                      </a>
-                      {isPlayableFile(file) && isSupportedNow(file) && (
+            {/* Hide table on mobile, show cards instead */}
+            <div className="hidden md:block">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-900">
+                    <th className="px-4 py-2 text-left text-gray-200">Filename</th>
+                    <th className="px-4 py-2 text-left text-gray-200">Type</th>
+                    <th className="px-4 py-2 text-left text-gray-200">Size</th>
+                    <th className="px-4 py-2 text-right text-gray-200">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {currentFiles.map((file, index) => (
+                    <tr key={index} className="hover:bg-gray-750">
+                      <td className="px-4 py-2 text-gray-300">
+                        {getFilenameFromUrl(file.l)}
+                      </td>
+                      <td className="px-4 py-2 text-gray-300">{file.y}</td>
+                      <td className="px-4 py-2 text-gray-300">
+                        {formatFileSize(file.s || 0)}
+                      </td>
+                      <td className="px-4 py-2 text-right space-x-2">
                         <a
-                          href={getEmulatorUrl(file)}
-                          className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
+                          href={ensureBaseUrl(file.l)}
+                          className="inline-block px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-500 transition-colors"
                           target="_blank"
                           rel="noopener noreferrer"
-                          title="Opens in a new tab"
                         >
-                          Play
+                          Download
                         </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        {isPlayableFile(file) && isSupportedNow(file) && (
+                          <a
+                            href={getEmulatorUrl(file)}
+                            className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Opens in a new tab"
+                          >
+                            Play
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden">
+              {currentFiles.map((file, index) => (
+                <div key={index} className="p-4 border-b border-gray-800">
+                  <div className="mb-2">
+                    <div className="text-gray-300 font-medium break-all">
+                      {getFilenameFromUrl(file.l)}
+                    </div>
+                    <div className="text-gray-400 text-sm">
+                      {file.y} • {formatFileSize(file.s || 0)}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={ensureBaseUrl(file.l)}
+                      className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-500 transition-colors text-center"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download
+                    </a>
+                    {isPlayableFile(file) && isSupportedNow(file) && (
+                      <a
+                        href={getEmulatorUrl(file)}
+                        className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors text-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Opens in a new tab"
+                      >
+                        Play
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
