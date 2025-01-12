@@ -86,8 +86,26 @@ async function fetchWithCache<T>(
   return data;
 }
 
+// Add this function before the Games component
+async function findGameLocation(id: number): Promise<{ letter: string; page: number } | null> {
+  try {
+    const indexData = await fetchWithCache<IndexEntry[]>('/data/index.json');
+    const entry = indexData.find(entry => entry.i === id);
+    if (entry) {
+      return {
+        letter: entry.l,
+        page: entry.p
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error finding game location:', error);
+    return null;
+  }
+}
+
 export default function Games() {
-  const { letter } = useParams<{ letter?: string }>();
+  const { letter, id } = useParams<{ letter?: string; id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState('');
   const [games, setGames] = useState<Game[]>([]);
@@ -179,7 +197,7 @@ export default function Games() {
 
   // Update URL when letter changes
   const handleLetterClick = (letter: string | null) => {
-    navigate(`/games/${letter || 'A'}?page=1`);
+    navigate(`/games/letter/${letter || 'A'}?page=1`);
     setSearchInput(''); // Clear search input
     setSearchResults([]); // Clear search results
   };
@@ -187,7 +205,7 @@ export default function Games() {
   // Update URL when page changes
   const handlePageChange = (newPage: number) => {
     if (!letter) return;
-    navigate(`/games/${letter}?page=${newPage}`);
+    navigate(`/games/letter/${letter}?page=${newPage}`);
   };
 
   // Update URL when search changes
@@ -228,6 +246,14 @@ export default function Games() {
         setPaginationInfo(null);
         return;
       }
+
+      const isNumber = !isNaN(parseInt(letter));
+
+      // handle the legacy id instead of letter
+      if (isNumber) {
+        navigate(`/games/${letter}`);
+        return;
+      }      
 
       setIsLoading(true);
       setError(null);
@@ -354,16 +380,40 @@ export default function Games() {
     sessionStorage.setItem('gamesListScrollPosition', scrollPosition.toString());
   };
 
-  // Update the initial letter effect
-  useEffect(() => {
-    // If we're on /games with no letter and not searching, redirect to /games/A
-    if (!letter && !searchInput && location.pathname === '/games') {
-      navigate('/games/A?page=1');
-    }
-  }, [letter, searchInput, location.pathname]);
-
   // Update where selectedLetter is used to use letter from params instead
   const selectedLetter = letter;
+
+  // Add effect to handle legacy ID-based URLs
+  useEffect(() => {
+    async function handleLegacyUrl() {
+      if (id) {
+        const numericId = parseInt(id);
+        if (!isNaN(numericId)) {
+          // Since we're already at /games/:id, we don't need to redirect
+          // Just need to handle invalid IDs
+          const location = await findGameLocation(numericId);
+          if (!location) {
+            // If game not found, redirect to games list
+            navigate('/games/letter/A?page=1');
+          }
+          // If the game exists, we're already on the correct URL
+        } else {
+          // Invalid ID format, redirect to games list
+          navigate('/games/letter/A?page=1');
+        }
+      }
+    }
+
+    handleLegacyUrl();
+  }, [id, navigate]);
+
+  // Update the initial navigation effect
+  useEffect(() => {
+    // If we're on /games with no letter and not searching, redirect to /games/letter/A
+    if (!letter && !searchInput && location.pathname === '/games') {
+      navigate('/games/letter/A?page=1');
+    }
+  }, [letter, searchInput, location.pathname, navigate]);
 
   return (
     <div className="container mx-auto px-4 py-8">

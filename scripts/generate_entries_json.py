@@ -223,17 +223,24 @@ def generate_sitemap(index_data: List[Dict], project_root: Path) -> None:
         ET.SubElement(url, 'changefreq').text = 'weekly'
         ET.SubElement(url, 'priority').text = priority
     
-    # Add letter pages
-    # Get unique letters from index data
+    # Add letter pages with new URL structure
     letters = sorted(set(entry['l'] for entry in index_data))
     
     for letter in letters:
         url = ET.SubElement(urlset, 'url')
-        ET.SubElement(url, 'loc').text = f'{base_url}/games/{letter}'
+        ET.SubElement(url, 'loc').text = f'{base_url}/games/letter/{letter}'
         ET.SubElement(url, 'lastmod').text = current_date
         ET.SubElement(url, 'changefreq').text = 'weekly'
         ET.SubElement(url, 'priority').text = '0.8'
-        
+    
+    # Add individual game pages
+    for entry in index_data:
+        url = ET.SubElement(urlset, 'url')
+        ET.SubElement(url, 'loc').text = f'{base_url}/games/{entry[KEY_MAPPINGS["id"]]}'
+        ET.SubElement(url, 'lastmod').text = current_date
+        ET.SubElement(url, 'changefreq').text = 'monthly'
+        ET.SubElement(url, 'priority').text = '0.7'
+    
     # Create the XML tree and write it to a file
     tree = ET.ElementTree(urlset)
     ET.indent(tree, space='  ')

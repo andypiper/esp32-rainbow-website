@@ -66,11 +66,7 @@ export default function GameTile({
     <Link
       key={game.i}
       onClick={onGameClick}
-      to={`/games/detail/${game.i}?${new URLSearchParams({
-        ...(selectedLetter ? { letter: selectedLetter } : {}),
-        ...(currentPage ? { page: currentPage.toString() } : {}),
-        ...(searchInput ? { search: searchInput } : {})
-      }).toString()}`}
+      to={`/games/${game.i}`}
       className={`block rounded-lg p-4 transition-transform hover:scale-105 relative overflow-hidden h-full group ${
         screenUrl ? 'hover:shadow-xl' : 'bg-gray-700 hover:bg-gray-600'
       }`}
