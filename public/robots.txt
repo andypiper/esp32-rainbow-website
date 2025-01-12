@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /emulator
+Disallow: /emulator/*
+
+# Sitemap
 Sitemap: https://www.esp32rainbow.com/sitemap.xml
