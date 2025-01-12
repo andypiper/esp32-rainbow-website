@@ -66,7 +66,7 @@ export default function GameTile({
     <Link
       key={game.i}
       onClick={onGameClick}
-      to={`/games/${game.i}?${new URLSearchParams({
+      to={`/games/detail/${game.i}?${new URLSearchParams({
         ...(selectedLetter ? { letter: selectedLetter } : {}),
         ...(currentPage ? { page: currentPage.toString() } : {}),
         ...(searchInput ? { search: searchInput } : {})

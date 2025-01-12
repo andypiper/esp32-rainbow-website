@@ -205,21 +205,35 @@ def generate_sitemap(index_data: List[Dict], project_root: Path) -> None:
     base_url = 'https://www.esp32rainbow.com'
     current_date = datetime.utcnow().strftime('%Y-%m-%d')
     
-    # Add main games page
-    games_url = ET.SubElement(urlset, 'url')
-    ET.SubElement(games_url, 'loc').text = f'{base_url}/games'
-    ET.SubElement(games_url, 'lastmod').text = current_date
-    ET.SubElement(games_url, 'changefreq').text = 'weekly'
-    ET.SubElement(games_url, 'priority').text = '0.8'
+    # Add main pages
+    main_pages = [
+        ('/', '1.0'),
+        ('/docs', '0.8'),
+        ('/faq', '0.8'),
+        ('/firmware', '0.8'),
+        ('/github', '0.7'),
+        ('/games', '0.9'),
+        ('/emulator', '0.9'),
+    ]
     
-    # Add individual game pages
-    for entry in index_data:
-        game_url = ET.SubElement(urlset, 'url')
-        ET.SubElement(game_url, 'loc').text = f'{base_url}/games/{entry["i"]}'
-        ET.SubElement(game_url, 'lastmod').text = current_date
-        ET.SubElement(game_url, 'changefreq').text = 'monthly'
-        ET.SubElement(game_url, 'priority').text = '0.6'
+    for page_path, priority in main_pages:
+        url = ET.SubElement(urlset, 'url')
+        ET.SubElement(url, 'loc').text = f'{base_url}{page_path}'
+        ET.SubElement(url, 'lastmod').text = current_date
+        ET.SubElement(url, 'changefreq').text = 'weekly'
+        ET.SubElement(url, 'priority').text = priority
     
+    # Add letter pages
+    # Get unique letters from index data
+    letters = sorted(set(entry['l'] for entry in index_data))
+    
+    for letter in letters:
+        url = ET.SubElement(urlset, 'url')
+        ET.SubElement(url, 'loc').text = f'{base_url}/games/{letter}'
+        ET.SubElement(url, 'lastmod').text = current_date
+        ET.SubElement(url, 'changefreq').text = 'weekly'
+        ET.SubElement(url, 'priority').text = '0.8'
+        
     # Create the XML tree and write it to a file
     tree = ET.ElementTree(urlset)
     ET.indent(tree, space='  ')
@@ -245,9 +259,13 @@ def cleanup_generated_files(project_root: Path) -> None:
 def main():
     # Get the project root directory (one level up from scripts)
     script_dir = Path(__file__).parent
+    print(f"Script directory: {script_dir}")
     project_root = script_dir.parent
+    print(f"Project root: {project_root}")
     db_path = script_dir / "zxdb.sqlite"
+    print(f"Database path: {db_path}")
     data_dir = project_root / "public" / "data"
+    print(f"Data directory: {data_dir}")
     
     try:
         # Clean up existing files

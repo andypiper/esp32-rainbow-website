@@ -44,7 +44,8 @@ function Layout() {
           <Route path="/firmware" element={<Firmware />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/games" element={<Games />} />
-          <Route path="/games/:id" element={<GameDetail />} />
+          <Route path="/games/:letter" element={<Games />} />
+          <Route path="/games/detail/:id" element={<GameDetail />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
               <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>

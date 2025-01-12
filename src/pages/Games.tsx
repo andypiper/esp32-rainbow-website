@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
 import GameTile from '../components/GameTile';
@@ -87,6 +87,7 @@ async function fetchWithCache<T>(
 }
 
 export default function Games() {
+  const { letter } = useParams<{ letter?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState('');
   const [games, setGames] = useState<Game[]>([]);
@@ -97,6 +98,7 @@ export default function Games() {
   const searchIndex = useRef<FlexSearch.Index | null>(null);
   const indexData = useRef<IndexEntry[]>([]);
   const currentFetchController = useRef<AbortController | null>(null);
+  const navigate = useNavigate();
 
   // Restore scroll position when returning
   useEffect(() => {
@@ -120,7 +122,6 @@ export default function Games() {
   const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
 
   // Get state from URL parameters
-  const selectedLetter = searchParams.get('letter');
   const currentPage = parseInt(searchParams.get('page') || '1');
 
   // Initialize search index with data
@@ -178,17 +179,15 @@ export default function Games() {
 
   // Update URL when letter changes
   const handleLetterClick = (letter: string | null) => {
-    searchParams.set('letter', letter || 'A');
-    searchParams.set('page', '1');
-    setSearchParams(searchParams);
+    navigate(`/games/${letter || 'A'}?page=1`);
     setSearchInput(''); // Clear search input
     setSearchResults([]); // Clear search results
   };
 
   // Update URL when page changes
   const handlePageChange = (newPage: number) => {
-    searchParams.set('page', newPage.toString());
-    setSearchParams(searchParams);
+    if (!letter) return;
+    navigate(`/games/${letter}?page=${newPage}`);
   };
 
   // Update URL when search changes
@@ -211,7 +210,7 @@ export default function Games() {
     if (searchFromUrl && searchFromUrl !== searchInput) {
       setSearchInput(searchFromUrl);
       // Clear letter selection if there's a search
-      if (selectedLetter) {
+      if (letter) {
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('letter');
         newParams.delete('page');
@@ -224,7 +223,7 @@ export default function Games() {
   // Fetch games data when letter or page changes
   useEffect(() => {
     async function fetchGames() {
-      if (!selectedLetter) {
+      if (!letter) {
         setGames([]);
         setPaginationInfo(null);
         return;
@@ -235,11 +234,11 @@ export default function Games() {
 
       try {
         // Fetch pagination info with caching
-        const info = await fetchWithCache<PaginationInfo>(`/data/${selectedLetter}/info.json`);
+        const info = await fetchWithCache<PaginationInfo>(`/data/${letter}/info.json`);
         setPaginationInfo(info);
 
         // Fetch games for current page with caching
-        const gamesData = await fetchWithCache<Game[]>(`/data/${selectedLetter}/${currentPage}.json`);
+        const gamesData = await fetchWithCache<Game[]>(`/data/${letter}/${currentPage}.json`);
         // Add base URL to all file links if needed
         const processedGamesData = gamesData.map(game => ({
           ...game,
@@ -261,7 +260,7 @@ export default function Games() {
     if (!searchInput) {
       fetchGames();
     }
-  }, [selectedLetter, currentPage, searchInput]);
+  }, [letter, currentPage, searchInput]);
 
   // Fetch full game details for search results
   useEffect(() => {
@@ -355,22 +354,37 @@ export default function Games() {
     sessionStorage.setItem('gamesListScrollPosition', scrollPosition.toString());
   };
 
-  // Add this effect near the other useEffect hooks
+  // Update the initial letter effect
   useEffect(() => {
-    // If no letter is selected and we're not searching, select 'A'
-    if (!selectedLetter && !searchInput) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set('letter', 'A');
-      newParams.set('page', '1');
-      setSearchParams(newParams);
+    // If we're on /games with no letter and not searching, redirect to /games/A
+    if (!letter && !searchInput && location.pathname === '/games') {
+      navigate('/games/A?page=1');
     }
-  }, [selectedLetter, searchInput]); // Add searchParams and setSearchParams if eslint complains
+  }, [letter, searchInput, location.pathname]);
+
+  // Update where selectedLetter is used to use letter from params instead
+  const selectedLetter = letter;
 
   return (
     <div className="container mx-auto px-4 py-8">
-
-      <h1 className="text-4xl font-bold mb-8 text-gray-100">ZX Spectrum Games</h1>
+      <h1 className="text-4xl font-bold mb-4 text-gray-100">Play ZX Spectrum Games Online</h1>
       
+      {/* New SEO-friendly introduction */}
+      <div className="prose prose-invert max-w-none mb-8">
+        <p className="text-lg text-gray-300 mb-4">
+          Welcome to our collection of classic ZX Spectrum games that you can play directly in your web browser! 
+          This comprehensive library features thousands of titles from the iconic 8-bit home computer that 
+          revolutionized gaming in the 1980s.
+        </p>
+        <p className="text-gray-400 mb-8">
+          Our collection is powered by the ZXDB database, the most extensive archive of ZX Spectrum software, 
+          featuring everything from classic arcade games and text adventures to educational software and 
+          programming tools. Browse through our catalog alphabetically or use the search function to find 
+          your favorite retro games. Each game can be played instantly online without needing to download 
+          or install any software.
+        </p>
+      </div>
+
       {/* Search Box */}
       <div className="mb-8">
         <input
