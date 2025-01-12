@@ -213,7 +213,6 @@ def generate_sitemap(index_data: List[Dict], project_root: Path) -> None:
         ('/firmware', '0.8'),
         ('/github', '0.7'),
         ('/games', '0.9'),
-        ('/emulator', '0.9'),
     ]
     
     for page_path, priority in main_pages:
