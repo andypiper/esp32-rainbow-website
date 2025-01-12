@@ -232,7 +232,38 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Support Section */}
+        {/* Games Catalog Section - Moved up */}
+        <div className="mt-24 max-w-7xl mx-auto px-4">
+          <div className="p-8 bg-gradient-to-r from-indigo-900/50 to-purple-900/50 rounded-lg shadow-lg border border-indigo-700">
+            <h2 className="text-3xl font-bold text-center text-gray-100 mb-4">Play Classic ZX Spectrum Games</h2>
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-xl text-gray-200 mb-6">
+                Want to just play some games now? We've got a vast database of classic ZX Spectrum 48K and 128K games, playable directly in your browser. 
+                Experience the golden age of 8-bit gaming with thousands of titles from the 1980s, 
+                from iconic arcade adventures to pioneering puzzle games.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link
+                  to="/games"
+                  className="inline-flex items-center px-6 py-3 text-lg font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors duration-150"
+                >
+                  Browse Games Catalog
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
+              </div>
+              <div className="mt-6 text-gray-300 text-sm">
+                <p>
+                  Featuring popular titles like Manic Miner, Jet Set Willy, Elite, and thousands more. 
+                  No downloads required - just click and play!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Support Section - Now after Games Catalog */}
         <div className="mt-24 max-w-7xl mx-auto px-4">
           <div className="p-6 bg-gray-800 rounded-lg shadow-lg border border-gray-700">
             <h2 className="text-3xl font-bold text-gray-100 mb-4">Support My Work</h2>
@@ -258,6 +289,7 @@ export default function Home() {
             </a>
           </div>
         </div>
+
       </div>
     </div>
   )
