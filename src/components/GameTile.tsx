@@ -50,9 +50,6 @@ async function getRunningScreenUrl(files: Game['f']): Promise<string | null> {
 
 export default function GameTile({ 
   game, 
-  selectedLetter, 
-  currentPage, 
-  searchInput, 
   onGameClick,
 }: GameTileProps) {
   const [screenUrl, setScreenUrl] = useState<string | null>(null);
