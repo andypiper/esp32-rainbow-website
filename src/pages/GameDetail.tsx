@@ -244,7 +244,6 @@ export default function GameDetail() {
             <ImageGallery 
               game={game}
               getDisplayUrl={getDisplayUrl}
-              isScrFile={isScrFile}
             />
           </div>
           <ZXDBCredit />

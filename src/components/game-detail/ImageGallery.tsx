@@ -5,10 +5,9 @@ import { Game } from '../../types/game';
 interface Props {
   game: Game;
   getDisplayUrl: (file: Game['f'][0]) => string;
-  isScrFile: (file: Game['f'][0]) => boolean;
 }
 
-export default function ImageGallery({ game, getDisplayUrl, isScrFile }: Props) {
+export default function ImageGallery({ game, getDisplayUrl }: Props) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (!game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/))) {
