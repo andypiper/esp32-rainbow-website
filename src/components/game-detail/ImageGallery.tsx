@@ -24,18 +24,13 @@ export default function ImageGallery({ game, getDisplayUrl, isScrFile }: Props) 
           .map((file, index) => (
             <div 
               key={index}
-              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+              className="relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer group"
               onClick={() => setSelectedImage(getDisplayUrl(file))}
             >
               <img
                 src={getDisplayUrl(file)}
                 alt={`Screenshot ${index + 1} of ${game.t}`}
-                className={`absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110 ${
-                  isScrFile(file) ? 'pixelated' : ''
-                }`}
-                style={{
-                  imageRendering: isScrFile(file) ? 'pixelated' : 'auto'
-                }}
+                className={`absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110`}
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />

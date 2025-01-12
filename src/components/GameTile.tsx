@@ -75,8 +75,7 @@ export default function GameTile({
             style={{ 
               backgroundImage: `url(${screenUrl})`,
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              imageRendering: screenUrl.includes('data:image/png;base64') ? 'pixelated' : 'auto'
+              backgroundPosition: 'center'
             }}
           />
           <div 
