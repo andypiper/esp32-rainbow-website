@@ -154,7 +154,10 @@ export default function Games() {
   useEffect(() => {
     const savedPosition = sessionStorage.getItem('gamesListScrollPosition');
     if (savedPosition && !isLoading) {
-      window.scrollTo(0, parseInt(savedPosition));
+      window.setTimeout(() => {
+        window.scrollTo(0, parseInt(savedPosition));
+        sessionStorage.removeItem('gamesListScrollPosition');
+      }, 100);
     }
   }, [isLoading]);
 
