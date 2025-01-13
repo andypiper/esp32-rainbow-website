@@ -7,10 +7,20 @@ import { SpectrumScreen } from '../utils/SpectrumScreen';
 import ImageGallery from '../components/game-detail/ImageGallery';
 import FilesList from '../components/game-detail/FilesList';
 import { Game } from '../types/game';
-import { ensureBaseUrl, getFilenameFromUrl } from '../utils/urls';
+import { ensureBaseUrl, getFilenameFromUrl, getProxyUrl } from '../utils/urls';
+
+type InstructionFile = {
+  content: string;
+  filename: string;
+};
 
 function isScrFile(file: Game['f'][0]): boolean {
   return file.l.toLowerCase().endsWith('.scr');
+}
+
+function isInstructionsFile(file: Game['f'][0]): boolean {
+  return file.y.toLowerCase() === 'instructions' && 
+         getFilenameFromUrl(file.l).toLowerCase().endsWith('.txt');
 }
 
 function generateStructuredData(game: Game) {
@@ -28,6 +38,29 @@ function generateStructuredData(game: Game) {
   };
 }
 
+function tryDecode(buffer: ArrayBuffer): string {
+  // List of encodings to try, in order of preference
+  const encodings = ['utf-8', 'windows-1252', 'iso-8859-1'];
+  
+  for (const encoding of encodings) {
+    try {
+      const decoder = new TextDecoder(encoding);
+      const text = decoder.decode(buffer);
+      
+      // Check if the text contains replacement characters ()
+      // If it doesn't, this is probably the correct encoding
+      if (!text.includes('')) {
+        return text;
+      }
+    } catch (e) {
+      console.warn(`Failed to decode with ${encoding}:`, e);
+    }
+  }
+  
+  // If all attempts failed, fall back to windows-1252
+  return new TextDecoder('windows-1252').decode(buffer);
+}
+
 export default function GameDetail() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -36,6 +69,7 @@ export default function GameDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scrImages, setScrImages] = useState<Record<string, string>>({});
+  const [instructions, setInstructions] = useState<InstructionFile[]>([]);
 
   // Handle back navigation
   const handleBack = () => {
@@ -82,6 +116,32 @@ export default function GameDetail() {
     }
   };
 
+  // Add this function to fetch instructions
+  const fetchInstructions = async (game: Game) => {
+    const instructionFiles = game.f.filter(isInstructionsFile);
+    if (instructionFiles.length === 0) return;
+
+    const loadedInstructions: InstructionFile[] = [];
+
+    for (const file of instructionFiles) {
+      try {
+        const response = await fetch(getProxyUrl(file.l));
+        if (!response.ok) throw new Error('Failed to fetch instructions');
+        const buffer = await response.arrayBuffer();
+        const content = tryDecode(buffer);
+        
+        loadedInstructions.push({
+          content,
+          filename: getFilenameFromUrl(file.l)
+        });
+      } catch (error) {
+        console.error('Failed to load instructions:', file.l, error);
+      }
+    }
+
+    setInstructions(loadedInstructions);
+  };
+
   useEffect(() => {
     async function fetchGame() {
       if (!id) return;
@@ -119,8 +179,11 @@ export default function GameDetail() {
 
         setGame(processedGame);
         
-        // Load SCR files
-        await loadScrFiles(processedGame);
+        // Add these lines
+        await Promise.all([
+          loadScrFiles(processedGame),
+          fetchInstructions(processedGame)
+        ]);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -200,18 +263,44 @@ export default function GameDetail() {
             
             <div className="flex justify-between items-center mt-4 mb-6">
               <h1 className="text-3xl font-bold text-gray-100">{game.t}</h1>
-              {game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/)) && (
-                <a 
-                  href="#files" 
-                  className="text-indigo-400 hover:text-indigo-300 text-sm"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById('files')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                  Jump to Files ↓
-                </a>
-              )}
+              <div className="flex gap-4">
+                {game.f.some(isInstructionsFile) && (
+                  <a 
+                    href="#instructions" 
+                    className="text-indigo-400 hover:text-indigo-300 text-sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById('instructions')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Jump to Instructions ↓
+                  </a>
+                )}
+                {game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/)) && (
+                  <>
+                    <a 
+                      href="#images" 
+                      className="text-indigo-400 hover:text-indigo-300 text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById('images')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Jump to Images ↓
+                    </a>
+                    <a 
+                      href="#files" 
+                      className="text-indigo-400 hover:text-indigo-300 text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById('files')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Jump to Files ↓
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
 
             <section className="mb-6">
@@ -242,9 +331,24 @@ export default function GameDetail() {
             />
 
             <ImageGallery 
+              id="images"
               game={game}
               getDisplayUrl={getDisplayUrl}
             />
+
+            {instructions.length > 0 && (
+              <section id="instructions" className="mt-8">
+                <h2 className="text-xl font-semibold text-gray-100 mb-3">Instructions</h2>
+                {instructions.map((instruction, index) => (
+                  <div key={instruction.filename} className={`bg-gray-900 p-4 rounded-lg ${index > 0 ? 'mt-4' : ''}`}>
+                    <h3 className="text-gray-400 text-sm mb-2">{instruction.filename}</h3>
+                    <pre className="text-gray-200 whitespace-pre-wrap font-mono text-sm overflow-x-auto">
+                      {instruction.content}
+                    </pre>
+                  </div>
+                ))}
+              </section>
+            )}
           </div>
           <ZXDBCredit />
         </article>

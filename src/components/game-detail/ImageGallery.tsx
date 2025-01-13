@@ -2,12 +2,13 @@ import { useState } from 'react';
 import ImageModal from './ImageModal';
 import { Game } from '../../types/game';
 
-interface Props {
+interface ImageGalleryProps {
   game: Game;
   getDisplayUrl: (file: Game['f'][0]) => string;
+  id?: string;
 }
 
-export default function ImageGallery({ game, getDisplayUrl }: Props) {
+export default function ImageGallery({ game, getDisplayUrl, id }: ImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (!game.f.some(f => f.l.toLowerCase().match(/\.(scr|gif|png|jpg|jpeg)$/))) {
@@ -15,7 +16,7 @@ export default function ImageGallery({ game, getDisplayUrl }: Props) {
   }
 
   return (
-    <section className="mb-8">
+    <section id={id} className="mt-8">
       <h2 className="text-xl font-semibold text-gray-100 mb-4">Screenshots</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {game.f
