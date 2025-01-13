@@ -10,23 +10,6 @@ const ITEMS_PER_PAGE = 50;
 const SEARCH_DEBOUNCE_MS = 500;
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
-// Custom debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
 // Using short keys from JSON
 interface Game {
   i: number;  // id
@@ -136,9 +119,6 @@ export default function Games() {
     });
   }, []);
 
-  // Debounce the search input
-  const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
-
   // Get state from URL parameters
   const currentPage = parseInt(searchParams.get('page') || '1');
 
@@ -190,11 +170,6 @@ export default function Games() {
     }
   }, [initializeSearchIndex]);
 
-  // Effect for debounced search
-  useEffect(() => {
-    performSearch(debouncedSearch);
-  }, [debouncedSearch, performSearch]);
-
   // Update URL when letter changes
   const handleLetterClick = (letter: string | null) => {
     navigate(`/games/letter/${letter || 'A'}?page=1`);
@@ -209,25 +184,24 @@ export default function Games() {
   };
 
   // Update URL when search changes
-  useEffect(() => {
+  const updateSearchParams = useCallback((search: string) => {
     const newParams = new URLSearchParams(searchParams);
-    if (searchInput) {
-      newParams.set('search', searchInput);
-      // Clear letter and page when searching
+    if (search) {
+      newParams.set('search', search);
       newParams.delete('letter');
       newParams.delete('page');
     } else {
       newParams.delete('search');
     }
     setSearchParams(newParams);
-  }, [searchInput]);
+  }, [searchParams, setSearchParams]);
 
-  // Initialize search input from URL
+  // Initialize search from URL
   useEffect(() => {
     const searchFromUrl = searchParams.get('search');
     if (searchFromUrl && searchFromUrl !== searchInput) {
       setSearchInput(searchFromUrl);
-      // Clear letter selection if there's a search
+      performSearch(searchFromUrl);
       if (letter) {
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('letter');
@@ -436,19 +410,25 @@ export default function Games() {
       </div>
 
       {/* Search Box */}
-      <div className="mb-8">
+      <div className="mb-8 flex gap-2">
         <input
           type="text"
           placeholder="Search games by title..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              performSearch(searchInput);
+            }
+          }}
           className="w-full max-w-xl px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100"
         />
-        {isLoading && searchInput && (
-          <div className="mt-2 text-gray-400 text-sm">
-            Searching...
-          </div>
-        )}
+        <button
+          onClick={() => performSearch(searchInput)}
+          className="px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          Search
+        </button>
       </div>
 
       {/* Letter Navigation */}

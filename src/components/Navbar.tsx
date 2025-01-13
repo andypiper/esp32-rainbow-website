@@ -12,7 +12,7 @@ type NavItem = {
 const navigationItems: NavItem[] = [
   {
     to: '/games',
-    label: 'Play Games',
+    label: 'Play ZX Spectrum Games',
     icon: (
       <path 
         strokeLinecap="round" 
