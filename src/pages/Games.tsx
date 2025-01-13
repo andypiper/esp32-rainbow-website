@@ -3,12 +3,10 @@ import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
 import GameTile from '../components/GameTile';
-import { ensureBaseUrl } from '../utils/urls';
+import { ensureBaseUrl, fetchWithCache } from '../utils/urls';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
-const SEARCH_DEBOUNCE_MS = 500;
-const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 // Using short keys from JSON
 interface Game {
@@ -35,40 +33,6 @@ interface PaginationInfo {
   p: number;  // pages
 }
 
-// Cache helper functions
-async function fetchWithCache<T>(
-  url: string, 
-  cacheName: string = 'games-cache',
-  signal?: AbortSignal
-): Promise<T> {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = await cache.match(url);
-
-  if (cachedResponse) {
-    const data = await cachedResponse.json();
-    const cacheTimestamp = parseInt(cachedResponse.headers.get('cache-timestamp') || '0');
-    
-    if (Date.now() - cacheTimestamp < CACHE_DURATION_MS) {
-      return data;
-    }
-  }
-
-  // Pass the signal to fetch
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-  
-  const data = await response.json();
-  const newResponse = new Response(JSON.stringify(data), {
-    headers: {
-      'content-type': 'application/json',
-      'cache-timestamp': Date.now().toString()
-    }
-  });
-  
-  await cache.put(url, newResponse.clone());
-  return data;
-}
-
 // Add this function before the Games component
 async function findGameLocation(id: number): Promise<{ letter: string; page: number } | null> {
   try {
@@ -86,6 +50,91 @@ async function findGameLocation(id: number): Promise<{ letter: string; page: num
     return null;
   }
 }
+
+// Move these functions outside the component
+const initializeSearchIndex = async (
+  indexData: React.MutableRefObject<IndexEntry[]>,
+  searchIndex: React.MutableRefObject<FlexSearch.Index | null>
+): Promise<string | null> => {
+  if (!indexData.current.length) {
+    try {
+      const data = await fetchWithCache<IndexEntry[]>('/data/index.json');
+      indexData.current = data;
+      
+      // Add all titles to the search index
+      data.forEach((entry, idx) => {
+        searchIndex.current?.add(idx, entry.t);
+      });
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : 'Failed to initialize search index';
+    }
+  }
+  return null;
+};
+
+const handleSearch = async (
+  query: string,
+  indexData: React.MutableRefObject<IndexEntry[]>,
+  searchIndex: React.MutableRefObject<FlexSearch.Index | null>,
+  updateSearchParams: (search: string) => void,
+  setIsLoading: (loading: boolean) => void,
+  setError: (error: string | null) => void,
+  setSearchResults: (results: IndexEntry[]) => void
+) => {
+  if (!query.trim()) {
+    setSearchResults([]);
+    updateSearchParams('');
+    return;
+  }
+
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    updateSearchParams(query);
+    
+    const initError = await initializeSearchIndex(indexData, searchIndex);
+    if (initError) {
+      throw new Error(initError);
+    }
+
+    const results = searchIndex.current?.search(query, {
+      limit: 100,
+      suggest: true
+    }) as number[];
+
+    const matchedEntries = results.map(idx => indexData.current[idx]);
+    setSearchResults(matchedEntries);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'An error occurred');
+    setSearchResults([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const handleUrlSearch = (
+  searchParams: URLSearchParams,
+  letter: string | undefined,
+  searchInput: string,
+  setSearchInput: (input: string) => void,
+  performSearch: (query: string) => void,
+  setSearchParams: (params: URLSearchParams) => void
+) => {
+  const searchFromUrl = searchParams.get('search');
+  if (searchFromUrl && searchFromUrl !== searchInput) {
+    setSearchInput(searchFromUrl);
+    performSearch(searchFromUrl);
+    if (letter) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('letter');
+      newParams.delete('page');
+      newParams.set('search', searchFromUrl);
+      setSearchParams(newParams);
+    }
+  }
+};
 
 export default function Games() {
   const { letter, id } = useParams<{ letter?: string; id?: string }>();
@@ -106,7 +155,6 @@ export default function Games() {
     const savedPosition = sessionStorage.getItem('gamesListScrollPosition');
     if (savedPosition && !isLoading) {
       window.scrollTo(0, parseInt(savedPosition));
-      // sessionStorage.removeItem('gamesListScrollPosition');
     }
   }, [isLoading]);
 
@@ -122,68 +170,6 @@ export default function Games() {
   // Get state from URL parameters
   const currentPage = parseInt(searchParams.get('page') || '1');
 
-  // Initialize search index with data
-  const initializeSearchIndex = useCallback(async () => {
-    if (!indexData.current.length) {
-      try {
-        const data = await fetchWithCache<IndexEntry[]>('/data/index.json');
-        indexData.current = data;
-        
-        // Add all titles to the search index
-        data.forEach((entry, idx) => {
-          searchIndex.current?.add(idx, entry.t);
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to initialize search index');
-      }
-    }
-  }, []);
-
-  // Handle search
-  const performSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Initialize index if needed
-      await initializeSearchIndex();
-
-      // Perform the search
-      const results = searchIndex.current?.search(query, {
-        limit: 100, // Limit results to prevent too many page fetches
-        suggest: true // Enable fuzzy search
-      }) as number[];
-
-      // Map results back to IndexEntries
-      const matchedEntries = results.map(idx => indexData.current[idx]);
-      setSearchResults(matchedEntries);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [initializeSearchIndex]);
-
-  // Update URL when letter changes
-  const handleLetterClick = (letter: string | null) => {
-    navigate(`/games/letter/${letter || 'A'}?page=1`);
-    setSearchInput(''); // Clear search input
-    setSearchResults([]); // Clear search results
-  };
-
-  // Update URL when page changes
-  const handlePageChange = (newPage: number) => {
-    if (!letter) return;
-    navigate(`/games/letter/${letter}?page=${newPage}`);
-  };
-
-  // Update URL when search changes
   const updateSearchParams = useCallback((search: string) => {
     const newParams = new URLSearchParams(searchParams);
     if (search) {
@@ -196,21 +182,45 @@ export default function Games() {
     setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
 
+  const performSearch = useCallback((query: string) => {
+    handleSearch(
+      query,
+      indexData,
+      searchIndex,
+      updateSearchParams,
+      setIsLoading,
+      setError,
+      setSearchResults
+    );
+    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+  }, [updateSearchParams]);
+
   // Initialize search from URL
   useEffect(() => {
-    const searchFromUrl = searchParams.get('search');
-    if (searchFromUrl && searchFromUrl !== searchInput) {
-      setSearchInput(searchFromUrl);
-      performSearch(searchFromUrl);
-      if (letter) {
-        const newParams = new URLSearchParams(searchParams);
-        newParams.delete('letter');
-        newParams.delete('page');
-        newParams.set('search', searchFromUrl);
-        setSearchParams(newParams);
-      }
-    }
+    handleUrlSearch(
+      searchParams,
+      letter,
+      searchInput,
+      setSearchInput,
+      performSearch,
+      setSearchParams
+    );
   }, []);
+
+  // Update URL when letter changes
+  const handleLetterClick = (letter: string | null) => {
+    navigate(`/games/letter/${letter || 'A'}?page=1`);
+    setSearchInput(''); // Clear search input
+    setSearchResults([]); // Clear search results
+    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+  };
+
+  // Update URL when page changes
+  const handlePageChange = (newPage: number) => {
+    if (!letter) return;
+    navigate(`/games/letter/${letter}?page=${newPage}`);
+    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+  };
 
   // Fetch games data when letter or page changes
   useEffect(() => {
