@@ -4,6 +4,7 @@ import FlexSearch from 'flexsearch';
 import ZXDBCredit from '../components/ZXDBCredit';
 import GameTile from '../components/GameTile';
 import { ensureBaseUrl, fetchWithCache } from '../utils/urls';
+import { Helmet } from 'react-helmet-async';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
@@ -424,6 +425,9 @@ export default function Games() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Helmet>
+        <title>Play ZX Spectrum Games Online</title>
+      </Helmet>
       <h1 className="text-4xl font-bold mb-4 text-gray-100">Play ZX Spectrum Games Online</h1>
       
       {/* New SEO-friendly introduction */}

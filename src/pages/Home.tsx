@@ -7,6 +7,7 @@ import heroPlaceholder from '../assets/hero/placeholder.webp'
 import youtubeThumb from '../assets/2moCumkF3EM.webp'
 import youtubeThumbMobile from '../assets/2moCumkF3EM-640.webp'
 import ReactPixel from 'react-facebook-pixel';
+import { Helmet } from 'react-helmet-async'
 
 function YouTubeFacade() {
   const [showVideo, setShowVideo] = useState(false);
@@ -104,6 +105,35 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
+      <Helmet>
+        <title>ESP32 Rainbow - ZX Spectrum Emulator</title>
+        <meta name="description" content="A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games." />
+        
+        {/* JSON-LD structured data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": "ESP32 Rainbow ZX Spectrum Emulator",
+            "description": "A ZX Spectrum emulator built using an ESP32 microcontroller. Features composite video output, PS/2 keyboard support, and SD card storage for loading games.",
+            "brand": {
+              "@type": "Brand",
+              "name": "ESP32 Rainbow"
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": "https://www.crowdsupply.com/atomic14/esp32-rainbow",
+              "availability": "https://schema.org/InStock"
+            },
+            "url": "https://www.esp32rainbow.com",
+            "category": "Electronics",
+            "isAccessoryOrSparePartFor": {
+              "@type": "Product",
+              "name": "ESP32 Microcontroller"
+            }
+          })}
+        </script>
+      </Helmet>
       {/* Banner Image */}
       <div className="w-full h-[300px] relative overflow-hidden">
         <img 
