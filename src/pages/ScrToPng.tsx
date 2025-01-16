@@ -146,7 +146,7 @@ export default function ScrToPng() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Helmet>
-        <title>SCR to PNG Converter - ESP32 Rainbow</title>
+        <title>ZX Spectrum SCR to PNG Converter</title>
         <meta name="description" content="Convert ZX Spectrum SCR screenshot files to PNG format" />
       </Helmet>
       
