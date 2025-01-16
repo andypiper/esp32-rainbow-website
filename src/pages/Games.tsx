@@ -268,7 +268,7 @@ export default function Games() {
         setPaginationInfo(info);
 
         // Fetch games for current page with caching
-        const gamesData = await fetchWithCache<Game[]>(`${basePath}/${currentPage}.json`) || [];
+        const gamesData = await fetchWithCache<Game[]>(`${basePath}/${currentPage}.json`);
         // Add base URL to all file links if needed
         const processedGamesData = gamesData.map(game => ({
           ...game,
@@ -279,7 +279,6 @@ export default function Games() {
         }));
         setGames(processedGamesData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
         setGames([]);
         setPaginationInfo(null);
       } finally {
@@ -328,7 +327,7 @@ export default function Games() {
               `/data/${letter}/${page}.json`,
               'games-cache',
               currentFetchController.current.signal
-            ) || [];
+            );
             
             // Process file URLs and filter only the games we want from this page
             const wantedIds = new Set(gamesByLetterAndPage[letter][parseInt(page)].map(r => r.i));
@@ -354,10 +353,6 @@ export default function Games() {
         setGames(sortedGames);
         setPaginationInfo({ p: Math.ceil(sortedGames.length / ITEMS_PER_PAGE) });
       } catch (err) {
-        // Only set error if it's not an abort error
-        if (err instanceof Error && err.name !== 'AbortError') {
-          setError(err.message);
-        }
         setGames([]);
         setPaginationInfo(null);
       } finally {
