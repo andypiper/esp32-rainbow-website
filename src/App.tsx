@@ -12,6 +12,7 @@ import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import { HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
+import ScrToPng from './pages/ScrToPng'
 
 // Create a new component to handle route changes and layout
 function Layout() {
@@ -46,6 +47,7 @@ function Layout() {
           <Route path="/games" element={<Games />} />
           <Route path="/games/letter/:letter" element={<Games />} />
           <Route path="/games/:id" element={<GameDetail />} />
+          <Route path="/tools/scr-to-png" element={<ScrToPng />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
               <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>

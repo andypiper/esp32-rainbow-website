@@ -1,12 +1,20 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Banner from './Banner'
 
-type NavItem = {
+type SubNavItem = {
   to: string
+  label: string
+  external?: boolean
+  icon?: JSX.Element
+}
+
+type NavItem = {
+  to?: string
   label: string
   icon: JSX.Element
   external?: boolean
+  children?: SubNavItem[]
 }
 
 const navigationItems: NavItem[] = [
@@ -23,55 +31,93 @@ const navigationItems: NavItem[] = [
     )
   },
   {
-    to: '/faq',
-    label: 'FAQ',
+    label: 'ESP32 Rainbow',
     icon: (
       <path 
         strokeLinecap="round" 
         strokeLinejoin="round" 
         strokeWidth={2} 
-        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
       />
-    )
-  },
-  {
-    to: '/docs',
-    label: 'Docs',
-    icon: (
-      <path 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        strokeWidth={2} 
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" 
-      />
-    )
-  },
-  {
-    to: '/firmware',
-    label: 'Firmware',
-    icon: (
-      <path 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        strokeWidth={2} 
-        d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" 
-      />
-    )
-  },
-  {
-    to: '/github',
-    label: 'GitHub',
-    icon: (
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-    )
-  },
-  {
-    to: 'https://esp32zx.substack.com',
-    label: 'Newsletter',
-    icon: (
-      <path d="M20.5 4H3.5C2.67 4 2 4.67 2 5.5v13c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5zM3.5 5.5h17v2.5h-17V5.5zm0 4h17v7.5h-17V9.5z"/>
     ),
-    external: true
+    children: [
+      {
+        to: '/firmware',
+        label: 'Firmware',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+          />
+        )
+      },
+      {
+        to: '/docs',
+        label: 'Documentation',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        )
+      },
+      {
+        to: '/faq',
+        label: 'FAQ',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        )
+      },
+      {
+        to: '/github',
+        label: 'GitHub',
+        icon: (
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+        )
+      },
+      {
+        to: 'https://esp32zx.substack.com',
+        label: 'Newsletter',
+        external: true,
+        icon: (
+          <path d="M20.5 4H3.5C2.67 4 2 4.67 2 5.5v13c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5zM3.5 5.5h17v2.5h-17V5.5zm0 4h17v7.5h-17V9.5z"/>
+        )
+      }
+    ]
+  },
+  {
+    label: 'Tools',
+    icon: (
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        strokeWidth={2} 
+        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+      />
+    ),
+    children: [
+      {
+        to: '/tools/scr-to-png',
+        label: 'Screenshot to PNG',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        )
+      }
+    ]
   }
 ]
 
@@ -80,38 +126,131 @@ interface NavItemProps extends NavItem {
   onClick?: () => void
 }
 
-function NavItem({ to, label, icon, external, mobile, onClick }: NavItemProps) {
-  const location = useLocation()
-  const isActive = location.pathname === to
+type NavDropdownProps = {
+  label: string
+  icon: JSX.Element
+  children: SubNavItem[]
+  mobile?: boolean
+  onClick?: () => void
+}
+
+function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const baseClasses = "text-gray-300 bg-gray-800 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md flex items-center"
+  const mobileClasses = mobile ? "block px-3 py-2 text-base font-medium" : "px-3 py-2"
   
-  const baseClasses = "text-gray-300 hover:text-indigo-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-md flex items-center"
-  const mobileClasses = mobile ? "block px-3 py-2 text-base font-medium focus:ring-offset-2 focus:ring-offset-gray-800" : "px-3 py-2"
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`${baseClasses} ${mobileClasses} w-full ${isOpen ? 'bg-gray-800' : ''}`}
+        aria-expanded={isOpen}
+      >
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {icon}
+        </svg>
+        {label}
+        <svg
+          className={`ml-2 h-5 w-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className={`
+          absolute z-10 ${mobile ? 'relative' : 'left-0 mt-2'} w-48 
+          rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5
+        `}>
+          <div className="py-1" role="menu">
+            {children.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="block px-4 py-2 text-sm text-gray-300 hover:text-indigo-400 flex items-center"
+                onClick={() => {
+                  setIsOpen(false)
+                  onClick?.()
+                }}
+                role="menuitem"
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
+              >
+                {item.icon && (
+                  <svg 
+                    className="w-5 h-5 mr-2" 
+                    fill={item.to === '/github' ? 'currentColor' : 'none'} 
+                    stroke={item.to === '/github' ? undefined : 'currentColor'} 
+                    viewBox="0 0 24 24"
+                  >
+                    {item.icon}
+                  </svg>
+                )}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NavItem(props: NavItemProps) {
+  if (props.children && Array.isArray(props.children)) {
+    return <NavDropdown {...props} children={props.children} />
+  }
+  
+  if (!props.to) {
+    return null
+  }
+  
+  const location = useLocation()
+  const isActive = location.pathname === props.to
+  
+  const baseClasses = "text-gray-300 hover:text-indigo-400 focus:outline-none focus:ring-none rounded-md flex items-center"
+  const mobileClasses = props.mobile ? "block px-3 py-2 text-base font-medium focus:ring-offset-2 focus:ring-offset-gray-800" : "px-3 py-2"
   const activeClasses = isActive ? "text-indigo-400 bg-gray-700" : ""
   const classes = `${baseClasses} ${mobileClasses} ${activeClasses}`
 
-  const linkProps = external ? {
+  const linkProps = props.external ? {
     target: "_blank",
     rel: "noopener noreferrer"
   } : {}
 
   return (
     <Link 
-      to={to} 
+      to={props.to} 
       className={classes}
-      onClick={onClick}
+      onClick={props.onClick}
       role="menuitem"
       aria-current={isActive ? 'page' : undefined}
       {...linkProps}
     >
       <svg 
         className="w-5 h-5 mr-2" 
-        fill={to === '/github' ? 'currentColor' : 'none'} 
-        stroke={to === '/github' ? undefined : 'currentColor'} 
+        fill={props.to === '/github' ? 'currentColor' : 'none'} 
+        stroke={props.to === '/github' ? undefined : 'currentColor'} 
         viewBox="0 0 24 24"
       >
-        {icon}
+        {props.icon}
       </svg>
-      {label}
+      {props.label}
     </Link>
   )
 }
@@ -148,7 +287,7 @@ export default function Navbar() {
           {/* Hamburger menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="[&]:min-[1000px]:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="[&]:min-[1000px]:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:ring-none"
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle navigation menu"

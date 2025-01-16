@@ -1,7 +1,7 @@
 import { getProxyUrl } from "./urls";
 
 // ZX Spectrum color palette
-const SPECTRUM_COLORS = [
+export const SPECTRUM_COLORS = [
   [0x00, 0x00, 0x00], // Black
   [0x00, 0x00, 0xD7], // Blue
   [0xD7, 0x00, 0x00], // Red
