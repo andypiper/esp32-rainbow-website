@@ -33,7 +33,7 @@ const styles = {
     border: "1px solid #ddd",
     borderRadius: "5px",
     padding: "10px",
-    overflowX: "auto",
+    overflow: "auto" as const,
     fontFamily: "Consolas, 'Courier New', monospace",
     fontSize: "14px",
     lineHeight: "1.5",
@@ -45,7 +45,7 @@ const styles = {
     color: "#6a9955",
     fontStyle: "italic",
   },
-};
+} as const;
 
 export default function ScrToPng() {
   const [previewUrl, setPreviewUrl] = useState<string>('')
