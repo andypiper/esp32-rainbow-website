@@ -10,7 +10,7 @@ import GitHub from './pages/GitHub'
 import Emulator from './pages/Emulator'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
-import { Helmet, HelmetProvider } from 'react-helmet-async'
+import { HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
 
 // Create a new component to handle route changes and layout
