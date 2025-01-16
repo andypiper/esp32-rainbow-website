@@ -44,15 +44,18 @@ export async function fetchWithCache<T>(
   // Pass the signal to fetch
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-  
-  const data = await response.json();
-  const newResponse = new Response(JSON.stringify(data), {
-    headers: {
-      'content-type': 'application/json',
-      'cache-timestamp': Date.now().toString()
-    }
-  });
-  
-  await cache.put(url, newResponse.clone());
-  return data;
+  try {
+    const data = await response.json();
+    const newResponse = new Response(JSON.stringify(data), {
+      headers: {
+        'content-type': 'application/json',
+        'cache-timestamp': Date.now().toString()
+      }
+    });  
+    await cache.put(url, newResponse.clone());
+    return data;
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+  }
+  return undefined;
 } 

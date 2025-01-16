@@ -8,13 +8,16 @@ import { ensureBaseUrl, fetchWithCache } from '../utils/urls';
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'.split('');
 const ITEMS_PER_PAGE = 50;
 
+const GENRES = ['All', 'Utility', 'Strategy Game', 'Adventure Game', 'Covertape', 'Compilation', 'Game', 'Programming', 'Sport Game', 'Tech Demo', 'Demoscene', 'General', 'Arcade Game']
+const GENRE_DIRS = ['', 'genres/utility/', 'genres/strategy_game/', 'genres/adventure_game/', 'genres/covertape/', 'genres/compilation/', 'genres/game/', 'genres/programming/', 'genres/sport_game/', 'genres/tech_demo/', 'genres/demoscene/', 'genres/general/', 'genres/arcade_game/']
+
 // Using short keys from JSON
 interface Game {
   i: number;  // id
   t: string;  // title
   g: string;  // genre
   m: string;  // machine
-  sc: number; // score (new)
+  sc: number; // score
   f: {        // files
     l: string;  // link
     y: string;  // type
@@ -33,7 +36,6 @@ interface PaginationInfo {
   p: number;  // pages
 }
 
-// Add this function before the Games component
 async function findGameLocation(id: number): Promise<{ letter: string; page: number } | null> {
   try {
     const indexData = await fetchWithCache<IndexEntry[]>('/data/index.json');
@@ -51,7 +53,6 @@ async function findGameLocation(id: number): Promise<{ letter: string; page: num
   }
 }
 
-// Move these functions outside the component
 const initializeSearchIndex = async (
   indexData: React.MutableRefObject<IndexEntry[]>,
   searchIndex: React.MutableRefObject<FlexSearch.Index | null>
@@ -149,6 +150,7 @@ export default function Games() {
   const indexData = useRef<IndexEntry[]>([]);
   const currentFetchController = useRef<AbortController | null>(null);
   const navigate = useNavigate();
+  const [selectedGenre, setSelectedGenre] = useState('All');
 
   // Restore scroll position when returning
   useEffect(() => {
@@ -186,6 +188,7 @@ export default function Games() {
   }, [searchParams, setSearchParams]);
 
   const performSearch = useCallback((query: string) => {
+    setSelectedGenre('All');
     handleSearch(
       query,
       indexData,
@@ -195,7 +198,7 @@ export default function Games() {
       setError,
       setSearchResults
     );
-    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+    sessionStorage.removeItem('gamesListScrollPosition');
   }, [updateSearchParams]);
 
   // Initialize search from URL
@@ -212,17 +215,27 @@ export default function Games() {
 
   // Update URL when letter changes
   const handleLetterClick = (letter: string | null) => {
-    navigate(`/games/letter/${letter || 'A'}?page=1`);
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    if (selectedGenre !== 'All') {
+      params.set('genre', selectedGenre);
+    }
+    navigate(`/games/letter/${letter || 'A'}?${params.toString()}`);
     setSearchInput(''); // Clear search input
     setSearchResults([]); // Clear search results
-    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+    sessionStorage.removeItem('gamesListScrollPosition');
   };
 
   // Update URL when page changes
   const handlePageChange = (newPage: number) => {
     if (!letter) return;
-    navigate(`/games/letter/${letter}?page=${newPage}`);
-    sessionStorage.removeItem('gamesListScrollPosition'); // remove the scroll position
+    const params = new URLSearchParams();
+    params.set('page', newPage.toString());
+    if (selectedGenre !== 'All') {
+      params.set('genre', selectedGenre);
+    }
+    navigate(`/games/letter/${letter}?${params.toString()}`);
+    sessionStorage.removeItem('gamesListScrollPosition');
   };
 
   // Fetch games data when letter or page changes
@@ -246,12 +259,16 @@ export default function Games() {
       setError(null);
 
       try {
+        const genreDir = GENRE_DIRS[GENRES.indexOf(selectedGenre)];
+        // Add genre directory to the path
+        const basePath = `/data/${genreDir}${letter}`;
+        
         // Fetch pagination info with caching
-        const info = await fetchWithCache<PaginationInfo>(`/data/${letter}/info.json`);
+        const info = await fetchWithCache<PaginationInfo>(`${basePath}/info.json`);
         setPaginationInfo(info);
 
         // Fetch games for current page with caching
-        const gamesData = await fetchWithCache<Game[]>(`/data/${letter}/${currentPage}.json`);
+        const gamesData = await fetchWithCache<Game[]>(`${basePath}/${currentPage}.json`) || [];
         // Add base URL to all file links if needed
         const processedGamesData = gamesData.map(game => ({
           ...game,
@@ -273,7 +290,7 @@ export default function Games() {
     if (!searchInput) {
       fetchGames();
     }
-  }, [letter, currentPage, searchInput]);
+  }, [letter, currentPage, searchInput, selectedGenre]);
 
   // Fetch full game details for search results
   useEffect(() => {
@@ -311,7 +328,7 @@ export default function Games() {
               `/data/${letter}/${page}.json`,
               'games-cache',
               currentFetchController.current.signal
-            );
+            ) || [];
             
             // Process file URLs and filter only the games we want from this page
             const wantedIds = new Set(gamesByLetterAndPage[letter][parseInt(page)].map(r => r.i));
@@ -402,6 +419,14 @@ export default function Games() {
     }
   }, [letter, searchInput, location.pathname, navigate]);
 
+  // Add an effect to initialize genre from URL
+  useEffect(() => {
+    const genreFromUrl = searchParams.get('genre');
+    if (genreFromUrl && GENRES.includes(genreFromUrl)) {
+      setSelectedGenre(genreFromUrl);
+    }
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4 text-gray-100">Play ZX Spectrum Games Online</h1>
@@ -424,18 +449,35 @@ export default function Games() {
 
       {/* Search Box */}
       <div className="mb-8 flex gap-2">
-        <input
-          type="text"
-          placeholder="Search games by title..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              performSearch(searchInput);
-            }
-          }}
-          className="w-full max-w-xl px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100"
-        />
+        <div className="relative flex-1 max-w-xl">
+          <input
+            type="text"
+            placeholder="Search games by title..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                performSearch(searchInput);
+              }
+            }}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100"
+          />
+          {searchInput && (
+            <button
+              onClick={() => {
+                setSearchInput('');
+                setSearchResults([]);
+                updateSearchParams('');
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 p-1"
+              aria-label="Clear search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
         <button
           onClick={() => performSearch(searchInput)}
           className="px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -444,22 +486,52 @@ export default function Games() {
         </button>
       </div>
 
-      {/* Letter Navigation */}
-      <div className={`flex flex-wrap gap-2 mb-8 ${searchInput ? 'opacity-50' : ''}`}>
-        {LETTERS.map((letter) => (
-          <button
-            key={letter}
-            onClick={() => handleLetterClick(letter)}
-            disabled={false}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors
-              ${letter === selectedLetter
-                ? 'bg-indigo-500 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-100'
-              }`}
+      {/* Genre and Letter Navigation */}
+      <div className="mb-8">
+        <div className="mb-4">
+          <select
+            value={selectedGenre}
+            onChange={(e) => {
+              const newGenre = e.target.value;
+              setSelectedGenre(newGenre);
+              if (letter) {
+                const params = new URLSearchParams();
+                params.set('page', '1');
+                if (newGenre !== 'All') {
+                  params.set('genre', newGenre);
+                }
+                navigate(`/games/letter/${letter}?${params.toString()}`);
+              }
+            }}
+            disabled={!!searchInput}
+            className={`w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100 ${
+              searchInput ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            {letter === '_' ? '#' : letter}
-          </button>
-        ))}
+            {GENRES.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className={`flex flex-wrap gap-2 ${searchInput ? 'opacity-50' : ''}`}>
+          {LETTERS.map((letter) => (
+            <button
+              key={letter}
+              onClick={() => handleLetterClick(letter)}
+              disabled={false}
+              className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors
+                ${letter === selectedLetter
+                  ? 'bg-indigo-500 text-white'
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+                }`}
+            >
+              {letter === '_' ? '#' : letter}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Games List */}

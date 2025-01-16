@@ -97,12 +97,22 @@ def transform_data(rows: List[tuple], scores: List[tuple]) -> Dict[str, Any]:
     entries_by_letter = {}
     # List for the index
     index_entries = []
+
+    # get a unique list pf all the genres
+    genres = set(row[2].split(':')[0].strip() for row in rows)
+    print(f"Unique genres: {genres}")
+
+    genre_entries_by_letter = {}
+    for genre in genres:
+        genre_entries_by_letter[genre] = {}
     
     # Group the results by entry ID first
     entries_dict = {}
     for row in rows:
         entry_id, title, genre, machine, file_link, file_size, file_type = row
         
+        genre_name = genre.split(':')[0].strip()
+
         if entry_id not in entries_dict:
             entries_dict[entry_id] = {
                 KEY_MAPPINGS["id"]: entry_id,
@@ -123,6 +133,11 @@ def transform_data(rows: List[tuple], scores: List[tuple]) -> Dict[str, Any]:
             if letter_key not in entries_by_letter:
                 entries_by_letter[letter_key] = []
             entries_by_letter[letter_key].append(entries_dict[entry_id])
+
+            if letter_key in genre_entries_by_letter[genre_name]:
+                genre_entries_by_letter[genre_name][letter_key].append(entries_dict[entry_id])
+            else:
+                genre_entries_by_letter[genre_name][letter_key] = [entries_dict[entry_id]]
             
             # Add to index with letter information
             index_entries.append({
@@ -160,7 +175,8 @@ def transform_data(rows: List[tuple], scores: List[tuple]) -> Dict[str, Any]:
     
     return {
         "index": final_index,
-        "by_letter": entries_by_letter
+        "by_letter": entries_by_letter,
+        "genre_entries_by_letter": genre_entries_by_letter
     }
 
 def write_json_file(data: Any, output_path: Path) -> None:
@@ -174,7 +190,7 @@ def create_paginated_files(entries: List[Dict], letter: str, data_dir: Path) -> 
     
     # Create letter directory
     letter_dir = data_dir / letter
-    letter_dir.mkdir(exist_ok=True)
+    letter_dir.mkdir(exist_ok=True, parents=True)
     
     # Calculate number of pages
     total_entries = len(sorted_entries)
@@ -296,6 +312,14 @@ def main():
         for letter, entries in transformed_data["by_letter"].items():
             total_pages = create_paginated_files(entries, letter, data_dir)
             print(f"Successfully generated {letter}/ with {total_pages} pages ({len(entries)} entries)")
+
+        # Write paginated files for each genre
+        for genre, entries in transformed_data["genre_entries_by_letter"].items():
+            # convert the genre name to a valid directory name - lowercase and replace spaces with underscores
+            genre_dir = genre.lower().replace(' ', '_')
+            for letter, entries in entries.items():
+                total_pages = create_paginated_files(entries, letter, data_dir / "genres" / genre_dir)
+                print(f"Successfully generated {genre_dir}/{letter}/ with {total_pages} pages ({len(entries)} entries)")
                 
         # Generate sitemap
         generate_sitemap(transformed_data["index"], project_root)
