@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import WaveformVisualizer from '../components/WaveformVisualizer'
 import { Link } from 'react-router-dom'
-import { findTapeFile, type ArchiveFile } from '../utils/archiveHelpers'
+import { findTapeFile } from '../utils/archiveHelpers'
 
 // Declare the type for our WASM module
 declare const createTapeModule: () => Promise<{
