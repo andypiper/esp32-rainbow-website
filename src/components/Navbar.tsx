@@ -5,6 +5,7 @@ import Banner from './Banner'
 type SubNavItem = {
   to: string
   label: string
+  id: string
   external?: boolean
   icon?: JSX.Element
 }
@@ -12,6 +13,7 @@ type SubNavItem = {
 type NavItem = {
   to?: string
   label: string
+  id: string
   icon: JSX.Element
   external?: boolean
   children?: SubNavItem[]
@@ -21,6 +23,7 @@ const navigationItems: NavItem[] = [
   {
     to: '/games',
     label: 'Play ZX Spectrum Games',
+    id: 'games',
     icon: (
       <path 
         strokeLinecap="round" 
@@ -32,6 +35,7 @@ const navigationItems: NavItem[] = [
   },
   {
     label: 'ESP32 Rainbow',
+    id: 'esp32',
     icon: (
       <path 
         strokeLinecap="round" 
@@ -44,6 +48,7 @@ const navigationItems: NavItem[] = [
       {
         to: '/firmware',
         label: 'Firmware',
+        id: 'firmware',
         icon: (
           <path 
             strokeLinecap="round" 
@@ -56,6 +61,7 @@ const navigationItems: NavItem[] = [
       {
         to: '/docs',
         label: 'Documentation',
+        id: 'docs',
         icon: (
           <path 
             strokeLinecap="round" 
@@ -68,6 +74,7 @@ const navigationItems: NavItem[] = [
       {
         to: '/faq',
         label: 'FAQ',
+        id: 'faq',
         icon: (
           <path 
             strokeLinecap="round" 
@@ -80,6 +87,7 @@ const navigationItems: NavItem[] = [
       {
         to: '/github',
         label: 'GitHub',
+        id: 'github',
         icon: (
           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
         )
@@ -87,6 +95,7 @@ const navigationItems: NavItem[] = [
       {
         to: 'https://esp32zx.substack.com',
         label: 'Newsletter',
+        id: 'newsletter',
         external: true,
         icon: (
           <path d="M20.5 4H3.5C2.67 4 2 4.67 2 5.5v13c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5zM3.5 5.5h17v2.5h-17V5.5zm0 4h17v7.5h-17V9.5z"/>
@@ -96,6 +105,7 @@ const navigationItems: NavItem[] = [
   },
   {
     label: 'Tools',
+    id: 'tools',
     icon: (
       <path 
         strokeLinecap="round" 
@@ -108,12 +118,26 @@ const navigationItems: NavItem[] = [
       {
         to: '/tools/scr-to-png',
         label: 'Screenshot to PNG',
+        id: 'scr-to-png',
         icon: (
           <path 
             strokeLinecap="round" 
             strokeLinejoin="round" 
             strokeWidth={2} 
             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        )
+      },
+      {
+        to: '/tools/tap-to-wav',
+        label: 'TAP/TZX to WAV',
+        id: 'tap-to-wav',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
           />
         )
       }
@@ -323,7 +347,7 @@ export default function Navbar() {
           {/* Desktop menu */}
           <div className="hidden min-[1000px]:flex space-x-8 items-center" role="menubar">
             {navigationItems.map((item) => (
-              <NavItem key={item.to} {...item} />
+              <NavItem key={item.id} {...item} />
             ))}
           </div>
         </div>
@@ -346,7 +370,7 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigationItems.map((item) => (
               <NavItem 
-                key={item.to} 
+                key={item.id} 
                 {...item} 
                 mobile 
                 onClick={() => setIsOpen(false)}
