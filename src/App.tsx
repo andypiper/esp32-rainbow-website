@@ -14,6 +14,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { initFacebookPixel } from './utils/FacebookPixel'
 import ScrToPng from './pages/ScrToPng'
 import TapToWav from './pages/TapToWav'
+import TapToZ80 from './pages/TapToZ80'
 
 // Create a new component to handle route changes and layout
 function Layout() {
@@ -50,6 +51,7 @@ function Layout() {
           <Route path="/games/:id" element={<GameDetail />} />
           <Route path="/tools/scr-to-png" element={<ScrToPng />} />
           <Route path="/tools/tap-to-wav" element={<TapToWav />} />
+          <Route path="/tools/tap-to-z80" element={<TapToZ80 />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
               <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>
