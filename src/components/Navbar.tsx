@@ -249,6 +249,8 @@ function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProp
 }
 
 function NavItem(props: NavItemProps) {
+  const location = useLocation()
+
   if (props.children && Array.isArray(props.children)) {
     return <NavDropdown {...props} children={props.children} />
   }
@@ -257,7 +259,6 @@ function NavItem(props: NavItemProps) {
     return null
   }
   
-  const location = useLocation()
   const isActive = location.pathname === props.to
   
   const baseClasses = "text-gray-300 hover:text-indigo-400 focus:outline-none focus:ring-none rounded-md flex items-center"

@@ -5,7 +5,7 @@ import { findTapeFile } from '../utils/archiveHelpers'
 
 // Declare the type for our WASM module
 declare const tap2z80Module: () => Promise<{
-  convertTapeToZ80(filename: string, inputArray: Uint8Array, is128k: boolean): Uint8Array;
+  convertTapeToZ80: (filename: string, data: Uint8Array, is128k: boolean) => Uint8Array
 }>
 
 const WASM_SCRIPT_ID = 'tap-to-z80-wasm'
@@ -27,7 +27,9 @@ export default function TapToZ80() {
   const [error, setError] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [wasmModule, setWasmModule] = useState<any>(null)
+  const [wasmModule, setWasmModule] = useState<{
+    convertTapeToZ80: (filename: string, data: Uint8Array, is128k: boolean) => Uint8Array
+  } | null>(null)
   const [originalFilename, setOriginalFilename] = useState<string>('')
 
   // Initialize WASM module
@@ -87,7 +89,7 @@ export default function TapToZ80() {
     }
   }, [z80Files])
 
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     try {
       setError('')
       setIsProcessing(true)
@@ -154,7 +156,7 @@ export default function TapToZ80() {
     } finally {
       setIsProcessing(false)
     }
-  }
+  }, [wasmModule, z80Files])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -164,7 +166,7 @@ export default function TapToZ80() {
     if (file) {
       handleFile(file)
     }
-  }, [])
+  }, [handleFile])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()

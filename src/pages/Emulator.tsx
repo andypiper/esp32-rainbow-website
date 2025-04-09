@@ -62,7 +62,7 @@ export default function EmulatorPopup() {
     }
 
     loadGameFile();
-  }, [searchParams]);
+  }, [searchParams, machine]);
 
   const updateKey = (key: string, pressed: boolean) => {
     if (window.Module?.updateKey) {

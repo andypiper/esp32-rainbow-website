@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useSerial } from '../contexts/SerialContext'
 import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
 import { ESPLoader, FlashOptions, LoaderOptions, Transport, IEspLoaderTerminal } from 'esptool-js'
 import CryptoJS from 'crypto-js'
@@ -10,7 +9,8 @@ interface FirmwareFile {
 }
 
 export default function Firmware() {
-  const { isSupported } = useSerial()
+  const isSupported = typeof navigator !== 'undefined' && 'serial' in navigator
+
   const [selectedBoard, setSelectedBoard] = useState<BoardType | ''>('')
   const [selectedVersion, setSelectedVersion] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)

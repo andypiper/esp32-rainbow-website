@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 // Define module type for the emscripten module
 interface EmscriptenModule {
@@ -41,7 +41,7 @@ export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props)
   const handlePlay = async () => {
     setShowPlayButton(false);
     // Create audio context to initialize audio
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = new (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
     await audioContext.resume();
 
     if (canvasRef.current) {
@@ -49,7 +49,7 @@ export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props)
     }
   };
 
-  const initEmulator = async () => {
+  const initEmulator = useCallback(async () => {
     try {
       // Create the Emscripten Module configuration
       window.Module = {
@@ -66,6 +66,7 @@ export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props)
             setIsInitialized(true);
             window.setTimeout(() => {
               if (file) {
+                console.log("Loading file", file.name, "is128k", file.is128k);
                 window.Module.loadDroppedFile?.(file.name, file.data, file.is128k);
               }
             }, 100);
@@ -107,7 +108,7 @@ export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props)
       console.error('Failed to initialize emulator:', error);
       onError?.('Failed to initialize emulator');
     }
-  };
+  }, [canvasRef, file, onError]);
 
   useEffect(() => {
     if (!showPlayButton && !isInitialized && canvasRef.current) {
@@ -124,7 +125,7 @@ export default function ZXSpectrum({ file, onError, title, onUpdateKey }: Props)
         window.Module.stop();
       }
     };
-  }, [showPlayButton, isInitialized, canvasRef.current, onUpdateKey]);
+  }, [showPlayButton, isInitialized, onUpdateKey, initEmulator]);
 
   useEffect(() => {
     const originalTitle = document.title;

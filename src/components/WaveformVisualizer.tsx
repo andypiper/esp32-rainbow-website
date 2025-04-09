@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface WaveformVisualizerProps {
   audioRef: React.RefObject<HTMLAudioElement>
@@ -55,7 +55,7 @@ export default function WaveformVisualizer({ audioRef }: WaveformVisualizerProps
   }
 
   // Draw waveform
-  const drawWaveform = () => {
+  const drawWaveform = useCallback(() => {
     const canvas = canvasRef.current
     const analyser = analyserRef.current
     if (!canvas || !analyser) return
@@ -96,7 +96,7 @@ export default function WaveformVisualizer({ audioRef }: WaveformVisualizerProps
     ctx.stroke()
 
     animationRef.current = requestAnimationFrame(drawWaveform)
-  }
+  }, [])
 
   // Handle canvas resize
   useEffect(() => {
@@ -128,7 +128,7 @@ export default function WaveformVisualizer({ audioRef }: WaveformVisualizerProps
 
     const initAudioContext = async () => {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+        audioContextRef.current = new (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)()
         if (audioContextRef.current.state === 'suspended') {
           await audioContextRef.current.resume()
         }
@@ -182,7 +182,7 @@ export default function WaveformVisualizer({ audioRef }: WaveformVisualizerProps
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [audioRef])
+  }, [audioRef, drawWaveform])
 
   return (
     <canvas 

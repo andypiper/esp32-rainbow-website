@@ -83,7 +83,7 @@ const trackPurchaseClick = () => {
 
     // Facebook Pixel purchase tracking
     ReactPixel.track('Purchase', {currency: "USD", value: 20.00});
-  } catch (error) {
+  } catch (_error) {
     console.log("******* error ***");
     // window.open(url, '_blank', 'noopener,noreferrer');
   }

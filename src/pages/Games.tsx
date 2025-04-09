@@ -140,6 +140,7 @@ const handleUrlSearch = (
 
 export default function Games() {
   const { letter, id } = useParams<{ letter?: string; id?: string }>();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState('');
   const [games, setGames] = useState<Game[]>([]);
@@ -189,6 +190,7 @@ export default function Games() {
   }, [searchParams, setSearchParams]);
 
   const performSearch = useCallback((query: string) => {
+    console.log('performSearch', query);
     setSelectedGenre('All');
     handleSearch(
       query,
@@ -204,15 +206,19 @@ export default function Games() {
 
   // Initialize search from URL
   useEffect(() => {
-    handleUrlSearch(
-      searchParams,
-      letter,
-      searchInput,
-      setSearchInput,
-      performSearch,
-      setSearchParams
-    );
-  }, []);
+    console.log("Doing url search");
+    setIsInitialLoad(false);
+    if (isInitialLoad) {
+      handleUrlSearch(
+        searchParams,
+        letter,
+        searchInput,
+        setSearchInput,
+        performSearch,
+        setSearchParams
+      );
+    }
+  }, [searchParams, letter, searchInput, setSearchInput, performSearch, setSearchParams, isInitialLoad]);
 
   // Update URL when letter changes
   const handleLetterClick = (letter: string | null) => {
@@ -279,7 +285,7 @@ export default function Games() {
           }))
         }));
         setGames(processedGamesData);
-      } catch (err) {
+      } catch (_err) {
         setGames([]);
         setPaginationInfo(null);
       } finally {
@@ -290,7 +296,7 @@ export default function Games() {
     if (!searchInput) {
       fetchGames();
     }
-  }, [letter, currentPage, searchInput, selectedGenre]);
+  }, [letter, currentPage, searchInput, selectedGenre, navigate]);
 
   // Fetch full game details for search results
   useEffect(() => {
@@ -353,7 +359,7 @@ export default function Games() {
 
         setGames(sortedGames);
         setPaginationInfo({ p: Math.ceil(sortedGames.length / ITEMS_PER_PAGE) });
-      } catch (err) {
+      } catch (_err) {
         setGames([]);
         setPaginationInfo(null);
       } finally {
@@ -413,7 +419,7 @@ export default function Games() {
     if (!letter && !searchInput && location.pathname === '/games') {
       navigate('/games/letter/A?page=1');
     }
-  }, [letter, searchInput, location.pathname, navigate]);
+  }, [letter, searchInput, navigate]);
 
   // Add an effect to initialize genre from URL
   useEffect(() => {
@@ -421,7 +427,7 @@ export default function Games() {
     if (genreFromUrl && GENRES.includes(genreFromUrl)) {
       setSelectedGenre(genreFromUrl);
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="container mx-auto px-4 py-8">

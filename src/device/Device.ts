@@ -124,10 +124,10 @@ class Device {
             if (this.commandHandler) {
                 try {
                     await this.commandHandler.processOnce();
-                } catch (error: any) {
+                } catch (error: unknown) {
                     console.error("Error in processing interval:", error);
                     // If we encounter a fatal error, disconnect
-                    if (error.message === 'Port is closed') {
+                    if (error instanceof Error && error.message === 'Port is closed') {
                         this.disconnect();
                     }
                 }

@@ -1,9 +1,10 @@
-import { CommandHandler, Transport, Command } from '../../src/device/CommandHandler';
+import { Command, CommandHandler, Transport } from '../../src/device/CommandHandler';
 
 // Constants defined same as in CommandHandler
-const FRAME_BYTE = 0x7e;
-const ESCAPE_BYTE = 0x7d;
-const ESCAPE_MASK = 0x20;
+const FRAME_BYTE = 0x7E;
+const _CRC_SEED = 0x14;
+const _ESCAPE_BYTE = 0x7D;
+const _ESCAPE_MASK = 0x20;
 
 // Import or redefine the State enum for testing
 enum State {
@@ -163,9 +164,7 @@ describe('CommandHandler', () => {
       const packetPromise = commandHandler.waitForPacket(commandType);
       
       // Manually set the state to simulate being in the middle of a packet
-      // @ts-ignore - Accessing private property for testing
       commandHandler['state'] = State.READING_DATA;
-      // @ts-ignore - Set command type so the promise is found
       commandHandler['commandType'] = commandType;
       
       // Process an unexpected frame byte

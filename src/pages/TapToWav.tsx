@@ -17,7 +17,9 @@ export default function TapToWav() {
   const [error, setError] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [wasmModule, setWasmModule] = useState<any>(null)
+  const [wasmModule, setWasmModule] = useState<{
+    convertTapeFile: (data: Uint8Array, isTap: boolean) => Uint8Array
+  } | null>(null)
   const [convertedFilename, setConvertedFilename] = useState<string>('')
   const audioRef = useRef<HTMLAudioElement>(null)
 
@@ -66,7 +68,7 @@ export default function TapToWav() {
     }
   }, [])
 
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     try {
       setError('')
       setIsProcessing(true)
@@ -107,7 +109,7 @@ export default function TapToWav() {
     } finally {
       setIsProcessing(false)
     }
-  }
+  }, [wasmModule])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -117,7 +119,7 @@ export default function TapToWav() {
     if (file) {
       handleFile(file)
     }
-  }, [])
+  }, [handleFile])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()

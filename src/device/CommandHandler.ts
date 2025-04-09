@@ -20,7 +20,7 @@ enum State {
 class Deferred<T> {
   public promise: Promise<T>;
   public resolve: (value: T) => void = () => {};
-  public reject: (reason?: any) => void = () => {};
+  public reject: (reason?: Error) => void = () => {};
   public timeout: NodeJS.Timeout | null = null;
 
   constructor() {

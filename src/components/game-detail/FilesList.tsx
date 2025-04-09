@@ -47,7 +47,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
     } else if (otherFiles.length > 0) {
       setActiveTab('other');
     }
-  }, []);
+  }, [playableFiles.length, imageFiles.length, otherFiles.length]);
 
   const currentFiles = {
     playable: playableFiles,

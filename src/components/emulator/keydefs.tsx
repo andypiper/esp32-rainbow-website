@@ -46,16 +46,16 @@ interface Key {
 // the ZX Spectrum keyboard is 8 x 5 keys
 const keys: Key[][] = [
   [
-    { name: '1', image: key0 },
-    { name: '2', image: key1 },
-    { name: '3', image: key2 },
-    { name: '4', image: key3 },
-    { name: '5', image: key4 },
-    { name: '6', image: key5 },
-    { name: '7', image: key6 },
-    { name: '8', image: key7 },
-    { name: '9', image: key8 },
-    { name: '0', image: key9 },
+    { name: '1', image: key1 },
+    { name: '2', image: key2 },
+    { name: '3', image: key3 },
+    { name: '4', image: key4 },
+    { name: '5', image: key5 },
+    { name: '6', image: key6 },
+    { name: '7', image: key7 },
+    { name: '8', image: key8 },
+    { name: '9', image: key9 },
+    { name: '0', image: key0 },
   ],
   [
     { name: 'q', image: keyQ },
