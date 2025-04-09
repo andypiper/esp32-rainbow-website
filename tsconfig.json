@@ -5,7 +5,8 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "types": ["w3c-web-serial"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "types": ["w3c-web-serial", "jest", "node"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "esModuleInterop": true
   }
 }

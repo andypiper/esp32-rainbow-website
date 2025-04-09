@@ -5,8 +5,8 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
   const request = context.request;
   // check in the cache for the request
-  let cache = caches.default;
-  let cachedResponse = await cache.match(request);
+  const cache = caches.default;
+  const cachedResponse = await cache.match(request);
 
   if (cachedResponse) {
     return cachedResponse;
