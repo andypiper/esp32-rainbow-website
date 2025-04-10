@@ -1,13 +1,17 @@
-import { Command } from '../CommandHandler';
-import { CommandIds } from './CommandIds';
+import { Message } from '../MessageHandler';
+import { MessageIds } from './MessageIds';
 
-class GetVersion extends Command {
+class GetVersion extends Message {
   public major: number = 0;
   public minor: number = 0;
   public build: number = 0;
 
   constructor() {
-    super(CommandIds.GetVersion);
+    super(MessageIds.GetVersionRequest, MessageIds.GetVersionResponse);
+  }
+
+  public description(): string {
+    return 'GetVersion';
   }
 
   // No data - so default to superclass which is an empty array

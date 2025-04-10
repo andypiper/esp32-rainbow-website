@@ -1,3 +1,5 @@
+import { MessageIds } from "./Messages/MessageIds";
+
 const FRAME_BYTE = 0x7e;
 const ESCAPE_BYTE = 0x7d;
 const ESCAPE_MASK = 0x20;
@@ -31,7 +33,7 @@ class Deferred<T> {
   }
 }
 
-class CommandHandler {
+class MessageHandler {
   private state: State = State.EXPECTING_FRAME_START_BYTE;
 
   private commandType: number = 0;
@@ -43,9 +45,7 @@ class CommandHandler {
   private dataBuffer: Uint8Array = new Uint8Array();
   private bufferPosition: number = 0;
   private totalRead: number = 0;
-
-  private readBuffer: Uint8Array = new Uint8Array();
-  private readBufferPosition: number = 0;
+  private escapeNextByte: boolean = false;
   // Map of command types to promises of a result
   private resultPromise: { [key: number]: Deferred<Uint8Array | null> } = {};
 
@@ -116,7 +116,7 @@ class CommandHandler {
     this.totalRead = 0;
     this.bufferPosition = 0;
     this.dataBuffer = new Uint8Array(this.commandLength);
-    return State.READING_DATA;
+    return this.commandLength > 0 ? State.READING_DATA : State.READING_CRC;
   }
 
   private processReadingData(data: number): State {
@@ -171,14 +171,6 @@ class CommandHandler {
     return this.updateCRC32(crc, byte);
   }
 
-  private async readByte(): Promise<number> {
-    if (this.readBufferPosition >= this.readBuffer.length) {
-      this.readBuffer = await this.transport.read();
-      this.readBufferPosition = 0;
-    }
-    return this.readBuffer[this.readBufferPosition++];
-  }
-
   private rejectInFlightPromise(error: Error) {
     if (this.commandType !== 0) {
       const promise = this.resultPromise[this.commandType];
@@ -199,7 +191,8 @@ class CommandHandler {
     this.calculatedCrc = 0;
     this.dataBuffer = new Uint8Array();
     this.bufferPosition = 0;
-    this.totalRead = 0;                
+    this.totalRead = 0;     
+    this.escapeNextByte = false;
     // Reset to initial state
     this.state = State.EXPECTING_FRAME_START_BYTE;
   }
@@ -225,7 +218,7 @@ class CommandHandler {
   }
 
   // Wait for a packet to be received from the device
-  async waitForPacket(type: number, timeout: number = 10000) {
+  async waitForPacket(type: number, timeout: number = 30000) {
     const resultPromise = new Deferred<Uint8Array | null>();
     
     // If there's already a pending promise for this command type, reject it
@@ -254,67 +247,66 @@ class CommandHandler {
 
   // Process a single chunk of data from the transport
   async processOnce(): Promise<void> {
-    try {
-      const data = await this.readByte();
-      
-      // Check for a frame delimiter in the wrong state
-      if (data === FRAME_BYTE && 
-          this.state !== State.EXPECTING_FRAME_START_BYTE && 
-          this.state !== State.EXPECTING_FRAME_END_BYTE) {
-        // Frame byte in unexpected state - reset and notify
-        this.rejectInFlightPromise(new Error('Unexpected frame byte: Packet framing error'));
-        this.resetState();
-        return; // Exit early since we've reset state
-      }
-
-      let unescapedByte = data;
-
-      // unescape the data if we received an escape byte
-      if (data === ESCAPE_BYTE) {
-        try {
-          const next = await this.readByte();
-          unescapedByte = next ^ ESCAPE_MASK;
-        } catch (escapeError) {
-          // Handle error in escape sequence
-          this.rejectInFlightPromise(new Error('Incomplete escape sequence'));
+    const bytes = await this.transport.read();
+    for (const byte of bytes) {
+      try {
+          // Check for a frame delimiter in the wrong state
+        if (byte === FRAME_BYTE && 
+            this.state !== State.EXPECTING_FRAME_START_BYTE && 
+            this.state !== State.EXPECTING_FRAME_END_BYTE) {
+          // Frame byte in unexpected state - reset and notify
+          this.rejectInFlightPromise(new Error('Unexpected frame byte: Packet framing error'));
           this.resetState();
-          throw escapeError; // Re-throw to be caught by outer catch
+          continue;
         }
-      }
 
-      // process the data
-      switch (this.state) {
-        case State.EXPECTING_FRAME_START_BYTE:
-          this.state = this.processWaitingForStartByte(unescapedByte);
-          break;
-        case State.EXPECTING_FRAME_END_BYTE:
-          this.state = this.processExpectingFrameByte(unescapedByte);
-          break;
-        case State.READING_COMMAND_TYPE:
-          this.state = this.processReadingCommandType(unescapedByte);
-          break;
-        case State.READING_COMMAND_LENGTH:
-          this.state = this.processReadingCommandLength(unescapedByte);
-          break;
-        case State.READING_DATA:
-          this.state = this.processReadingData(unescapedByte);
-          break;
-        case State.READING_CRC:
-          this.state = this.processReadingCRC(unescapedByte);
-          break;
-        default:
-          this.state = State.EXPECTING_FRAME_START_BYTE;
+        // unescape the data if we received an escape byte
+        if (byte === ESCAPE_BYTE) {
+          this.escapeNextByte = true;
+          continue;
+        }
+
+        let unescapedByte = byte;
+        if (this.escapeNextByte) {
+          unescapedByte = byte ^ ESCAPE_MASK;
+          this.escapeNextByte = false;
+        }
+
+        // process the data
+        switch (this.state) {
+          case State.EXPECTING_FRAME_START_BYTE:
+            this.state = this.processWaitingForStartByte(unescapedByte);
+            break;
+          case State.EXPECTING_FRAME_END_BYTE:
+            this.state = this.processExpectingFrameByte(unescapedByte);
+            break;
+          case State.READING_COMMAND_TYPE:
+            this.state = this.processReadingCommandType(unescapedByte);
+            break;
+          case State.READING_COMMAND_LENGTH:
+            this.state = this.processReadingCommandLength(unescapedByte);
+            break;
+          case State.READING_DATA:
+            this.state = this.processReadingData(unescapedByte);
+            break;
+          case State.READING_CRC:
+            this.state = this.processReadingCRC(unescapedByte);
+            break;
+          default:
+            this.state = State.EXPECTING_FRAME_START_BYTE;
+        }
+      } catch (error) {
+        console.error("Error processing data:", error);
+        this.rejectInFlightPromise(new Error(`Error processing data: ${error}`));
+        this.resetState();
       }
-    } catch (error) {
-      console.error("Error processing data:", error);
-      this.rejectInFlightPromise(new Error(`Error processing data: ${error}`));
-      this.resetState();
     }
   }
 }
 
-class Command {
-  public commandType: number;
+class Message {
+  public messageRequestType: number;
+  public messageResponseType: number;
 
   public encode(): Uint8Array {
     // default to no data - empty array
@@ -326,26 +318,32 @@ class Command {
     // Child classes should override this method
   }
 
-  public async send(commandHandler: CommandHandler) {
+  public description(): string {
+    return `Message ${this.messageRequestType}`;
+  }
+
+  public async send(messageHandler: MessageHandler) {
     try {
-      await commandHandler.sendCommand(this.commandType, this.encode());
-      const result = await commandHandler.waitForPacket(this.commandType);
-      
-      // Only call decode if we have valid data
-      if (result) {
-        this.decode(result);
+      console.log(`Sending message: ${this.description()}`);
+      await messageHandler.sendCommand(this.messageRequestType, this.encode());
+      if (this.messageResponseType !== MessageIds.NullResponse) {
+        const result = await messageHandler.waitForPacket(this.messageResponseType); 
+        // Only call decode if we have valid data
+        if (result) {
+          this.decode(result);
+        }
       }
-      return result;
     } catch (error) {
-      console.error(`Error executing command ${this.commandType}:`, error);
+      console.error(`Error executing message ${this.messageRequestType}:`, error);
       throw error;
     }
   }
 
-  constructor(commandType: number) {
-    this.commandType = commandType;
+  constructor(messageRequestType: number, messageResponseType: number) {
+    this.messageRequestType = messageRequestType;
+    this.messageResponseType = messageResponseType;
   }
 }
 
 export type { Transport };
-export { CommandHandler, Command };
+export { MessageHandler, Message };

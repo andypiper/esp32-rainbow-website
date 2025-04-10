@@ -1,6 +1,8 @@
-import { GetVersion } from "./Commands/GetVersion";
-import { Transport, CommandHandler} from "./CommandHandler";
-import { ListFolder } from "./Commands/ListFolder";
+import { GetVersion } from "./Messages/GetVersion";
+import { Transport, MessageHandler} from "./MessageHandler";
+import { ListFolder } from "./Messages/ListFolder";
+import { WriteFile } from "./Messages/WriteFile";
+import { ReadFile } from "./Messages/ReadFile";
 
 class SerialTransport implements Transport {
     private reader: ReadableStreamDefaultReader<Uint8Array>;
@@ -20,10 +22,21 @@ class SerialTransport implements Transport {
         if (result.done) {
             throw new Error('Port is closed');
         }
+        console.log(`Reading ${result.value.length} bytes`);
+        // dump out the data as hex
+        console.log(Array.from(result.value).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        // dump out the data as ascii - replace non-printable characters with '.'
+        console.log(Array.from(result.value).map(b => b < 0xa || b > 126 ? '.' : String.fromCharCode(b)).join(''));
         return result.value;
     }
 
     public async write(data: Uint8Array): Promise<void> {
+        // console.log(`Writing ${data.length} bytes`);
+        // // dump out the data as hex
+        // console.log(Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        // // dump out the data as ascii - replace non-printable characters with '.'
+        // console.log(Array.from(data).map(b => b < 0xa || b > 126 ? '.' : String.fromCharCode(b)).join(''));
+        await this.writer.ready
         await this.writer.write(data);
     }
 
@@ -34,15 +47,15 @@ class SerialTransport implements Transport {
 }
 
 class Device {
-    private commandHandler: CommandHandler | null = null;
+    private messageHandler: MessageHandler | null = null;
     private transport: SerialTransport | null = null;
     private port: SerialPort | null = null;
     private processingInterval: number | null = null;
-    private readonly PROCESSING_INTERVAL_MS = 5; // 5ms interval for processing
-    private lastBaudRate: number = 115200; // Store the last baud rate used
+    private readonly PROCESSING_INTERVAL_MS = 1; // 5ms interval for processing
+    private lastBaudRate: number = 460800; // Store the last baud rate used
 
     constructor(options: { baudRate?: number } = {}) {
-        this.lastBaudRate = options.baudRate || 115200;
+        this.lastBaudRate = options.baudRate || 460800;
     }
 
     public async connect(options?: { baudRate?: number }): Promise<void> {
@@ -53,10 +66,11 @@ class Device {
 
         try {
             const port = await navigator.serial.requestPort();
-            await port.open({ baudRate: this.lastBaudRate });
+            // need to open the port with these optiosn - 460800 8-N-1
+            await port.open({ baudRate: this.lastBaudRate, dataBits: 8, stopBits: 1, parity: 'none' });
             this.port = port;
             this.transport = new SerialTransport(port);
-            this.commandHandler = new CommandHandler(this.transport);
+            this.messageHandler = new MessageHandler(this.transport);
             
             // Start processing data
             this.startProcessing();
@@ -79,7 +93,7 @@ class Device {
             if (this.port) {
                 await this.port.open({ baudRate: this.lastBaudRate });
                 this.transport = new SerialTransport(this.port);
-                this.commandHandler = new CommandHandler(this.transport);
+                this.messageHandler = new MessageHandler(this.transport);
                 this.startProcessing();
                 return;
             }
@@ -112,24 +126,30 @@ class Device {
             this.port = null;
         }
         
-        this.commandHandler = null;
+        this.messageHandler = null;
     }
 
     private startProcessing(): void {
         if (this.processingInterval !== null) {
             return;
         }
-        
-        this.processingInterval = window.setInterval(async () => {
-            if (this.commandHandler) {
+
+        this.processingInterval = window.setTimeout(async () => {
+            if (this.messageHandler) {
                 try {
-                    await this.commandHandler.processOnce();
+                    console.log("Process once start");
+                    await this.messageHandler.processOnce();
+                    console.log("Process once done");
+                    // schedule the next processing interval
+                    this.processingInterval = null;
+                    this.startProcessing();
                 } catch (error: unknown) {
                     console.error("Error in processing interval:", error);
                     // If we encounter a fatal error, disconnect
                     if (error instanceof Error && error.message === 'Port is closed') {
                         this.disconnect();
                     }
+                    this.processingInterval = null;
                 }
             }
         }, this.PROCESSING_INTERVAL_MS);
@@ -137,31 +157,50 @@ class Device {
 
     private stopProcessing(): void {
         if (this.processingInterval !== null) {
-            window.clearInterval(this.processingInterval);
+            window.clearTimeout(this.processingInterval);
             this.processingInterval = null;
         }
     }
 
     public async getVersion(): Promise<string> {
-        if (!this.commandHandler) {
+        if (!this.messageHandler) {
             throw new Error('Not connected');
         }
-        const command = new GetVersion();
-        await command.send(this.commandHandler);
-        return `${command.major}.${command.minor}.${command.build}`;
+        const message = new GetVersion();
+        await message.send(this.messageHandler);
+        return `${message.major}.${message.minor}.${message.build}`;
     }
 
     public async listFolder(path: string): Promise<string[]> {
-        if (!this.commandHandler) {
+        if (!this.messageHandler) {
             throw new Error('Not connected');
         }
-        const command = new ListFolder(path);
-        await command.send(this.commandHandler);
-        return command.files;
+        const message = new ListFolder(path);
+        await message.send(this.messageHandler);
+        return message.files;
     }
 
+    public async writeFile(path: string, data: Uint8Array): Promise<string> {
+        if (!this.messageHandler) {
+            throw new Error('Not connected');
+        }
+        console.log('Writing file', path, data.length, 'bytes');
+        const message = new WriteFile(path, data);
+        await message.send(this.messageHandler);
+        return message.result;
+    }
+
+    public async readFile(path: string): Promise<Uint8Array> {
+        if (!this.messageHandler) {
+            throw new Error('Not connected');
+        }
+        const message = new ReadFile(path);
+        await message.send(this.messageHandler);
+        return message.result;
+    }
+    
     public isConnected(): boolean {
-        return this.commandHandler !== null && this.port !== null;
+        return this.messageHandler !== null && this.port !== null;
     }
 }
 
