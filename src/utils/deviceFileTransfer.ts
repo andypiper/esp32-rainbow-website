@@ -1,13 +1,13 @@
 import Device from '../device/Device';
 import { ArchiveFile } from './archiveHelpers';
-import { loadWasmModule, convertTapToZ80 } from './tapToZ80Converter';
+import { loadWasmModule } from './tapToZ80Converter';
 
 // Global device instance that can be reused
 let deviceInstance: Device | null = null;
 // Flag to track if a transfer is currently in progress
 let transferInProgress = false;
 // Cache for the WASM module
-let wasmModuleCache: any = null;
+let wasmModuleCache: {convertTapeToZ80: (name: string, data: Uint8Array, is128k: boolean) => Uint8Array | null} | null = null;
 
 /**
  * Cleans up a filename to ensure it's compatible with device constraints

@@ -154,9 +154,6 @@ const FileBrowser = ({
       setError(null);
       const fullPath = currentPath + file.name;
       
-      // Show loading indicator
-      const downloadingFile = file;
-      
       // Get the file data
       const fileData = await onDownloadFile(fullPath);
       

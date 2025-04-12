@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Device from '../device/Device';
 import FileBrowser from '../components/FileBrowser';
-import FileEditor from '../components/FileEditor';
 import FileUploader from '../components/FileUploader';
 import { FileInfo } from '../device/Messages/ResponseTypes';
 
@@ -15,11 +14,6 @@ function DeviceTest() {
   const [isSupported, setIsSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // File editor state
-  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState<string>('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [isViewingFile, setIsViewingFile] = useState(false);
 
   useEffect(() => {
     // Check if Web Serial API is supported
@@ -218,72 +212,15 @@ function DeviceTest() {
         handleNavigate(path);
         return;
       }
-      
-      // Read the file content
-      const data = await device.readFile(path);
-      
-      // Convert the Uint8Array to string
-      const decoder = new TextDecoder();
-      const content = decoder.decode(data);
-      
-      // Set up the file editor
-      setSelectedFilePath(path);
-      setFileContent(content);
-      
-      // Determine if the file should be editable based on extension
-      const isTextFile = /\.(txt|html|css|js|json|md|xml|log|ini|conf|py|sh|c|cpp|h|yaml|yml)$/i.test(path);
-      setIsEditing(isTextFile);
-      setIsViewingFile(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to read file: ${errorMessage}`);
-      console.error('Failed to read file:', err);
+      setError(`Failed to select file: ${errorMessage}`);
+      console.error('Failed to select file:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSaveFile = async (content: string) => {
-    if (!device || !isConnected || !selectedFilePath) return;
-    
-    try {
-      setError(null);
-      setIsLoading(true);
-      
-      // Convert string to Uint8Array
-      const encoder = new TextEncoder();
-      const data = encoder.encode(content);
-      
-      // Write the file
-      const result = await device.writeFile(selectedFilePath, data);
-      console.log('Write file result:', result);
-      
-      if (result !== 'OK') {
-        throw new Error(`Failed to save file: ${result}`);
-      }
-      
-      // Update the local content state
-      setFileContent(content);
-      
-      // Refresh the file list if needed
-      handleListFolder(folderPath);
-      
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to save file: ${errorMessage}`);
-      console.error('Failed to save file:', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCloseEditor = () => {
-    setIsViewingFile(false);
-    setSelectedFilePath(null);
-    setFileContent('');
-  };
 
   const handleDownloadFile = async (path: string): Promise<Uint8Array> => {
     if (!device || !isConnected) {
@@ -403,59 +340,47 @@ function DeviceTest() {
       
       {isConnected && (
         <div className="grid grid-cols-1 gap-6">
-          {isViewingFile && selectedFilePath ? (
-            <div className="bg-gray-800 p-4 rounded">
-              <FileEditor
-                filename={selectedFilePath.split('/').pop() || ''}
-                content={fileContent}
-                onSave={handleSaveFile}
-                onCancel={handleCloseEditor}
-                readOnly={!isEditing}
-              />
-            </div>
-          ) : (
-            <div>
-              <div className="flex space-x-4 mb-4">
-                <input
-                  type="text"
-                  value={folderPath}
-                  onChange={e => setFolderPath(e.target.value)}
-                  className="px-4 py-2 text-black rounded flex-grow"
-                  placeholder="Folder path"
-                  disabled={!isSupported || !isConnected}
-                />
-                
-                <button
-                  onClick={() => handleListFolder()}
-                  disabled={!isConnected || !isSupported}
-                  className={`px-4 py-2 rounded ${!isConnected || !isSupported 
-                    ? 'bg-gray-500 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700'}`}
-                >
-                  Refresh
-                </button>
-              </div>
-              
-              <FileUploader
-                currentPath={folderPath}
-                onUpload={handleUploadFile}
-                isLoading={isLoading}
+          <div>
+            <div className="flex space-x-4 mb-4">
+              <input
+                type="text"
+                value={folderPath}
+                onChange={e => setFolderPath(e.target.value)}
+                className="px-4 py-2 text-black rounded flex-grow"
+                placeholder="Folder path"
+                disabled={!isSupported || !isConnected}
               />
               
-              <FileBrowser 
-                files={fileList} 
-                currentPath={folderPath}
-                onNavigate={handleNavigate}
-                isLoading={isLoading}
-                onDelete={handleDeleteFile}
-                onRename={handleRenameFile}
-                onCreateDirectory={handleCreateDirectory}
-                onGetFileInfo={handleGetFileInfo}
-                onSelectFile={handleSelectFile}
-                onDownloadFile={handleDownloadFile}
-              />
+              <button
+                onClick={() => handleListFolder()}
+                disabled={!isConnected || !isSupported}
+                className={`px-4 py-2 rounded ${!isConnected || !isSupported 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'}`}
+              >
+                Refresh
+              </button>
             </div>
-          )}
+            
+            <FileUploader
+              currentPath={folderPath}
+              onUpload={handleUploadFile}
+              isLoading={isLoading}
+            />
+            
+            <FileBrowser 
+              files={fileList} 
+              currentPath={folderPath}
+              onNavigate={handleNavigate}
+              isLoading={isLoading}
+              onDelete={handleDeleteFile}
+              onRename={handleRenameFile}
+              onCreateDirectory={handleCreateDirectory}
+              onGetFileInfo={handleGetFileInfo}
+              onSelectFile={handleSelectFile}
+              onDownloadFile={handleDownloadFile}
+            />
+          </div>
         </div>
       )}
       

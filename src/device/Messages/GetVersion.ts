@@ -3,9 +3,11 @@ import { MessageIds } from './MessageIds';
 import { StandardResponse } from './ResponseTypes';
 
 interface VersionInfo {
-  major: number;
-  minor: number;
-  build: number;
+  version: {
+    major: number;
+    minor: number;
+    build: number;
+  }
 }
 
 class GetVersion extends Message {
@@ -38,35 +40,20 @@ class GetVersion extends Message {
       const decoder = new TextDecoder();
       const responseText = decoder.decode(data);
       
-      try {
-        const response = JSON.parse(responseText) as StandardResponse<VersionInfo>;
-        
-        this.success = response.success;
-        
-        if (response.success && response.result) {
-          this.major = response.result.version.major;
-          this.minor = response.result.version.minor;
-          this.build = response.result.version.build;
-        } else {
-          this.error = response.errorMessage || 'Unknown error';
-        }
-        
-        console.log(`GetVersion response:`, response);
-        return;
-      } catch (jsonErr) {
-        // Not JSON, try the legacy format
+      const response = JSON.parse(responseText) as StandardResponse<VersionInfo>;
+      
+      this.success = response.success;
+      
+      if (response.success && response.result) {
+        this.major = response.result.version.major;
+        this.minor = response.result.version.minor;
+        this.build = response.result.version.build;
+      } else {
+        this.error = response.errorMessage || 'Unknown error';
       }
       
-      // Legacy format - just 3 bytes for major, minor, build
-      if (data.length >= 3) {
-        this.major = data[0];
-        this.minor = data[1];
-        this.build = data[2];
-        this.success = true;
-        console.log(`GetVersion using legacy format: ${this.major}.${this.minor}.${this.build}`);
-      } else {
-        throw new Error('Invalid response format');
-      }
+      console.log(`GetVersion response:`, response);
+      return;
     } catch (err) {
       this.success = false;
       this.error = `Failed to parse version info: ${err}`;

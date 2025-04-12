@@ -1,7 +1,7 @@
 /**
  * Standard response format for all device operations
  */
-export interface StandardResponse<T = any> {
+export interface StandardResponse<T> {
   success: boolean;
   errorMessage?: string;
   result?: T;

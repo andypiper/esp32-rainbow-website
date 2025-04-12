@@ -1,6 +1,5 @@
 import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
-import { StandardResponse } from './ResponseTypes';
 
 class ReadFile extends Message {
   public path: string = '';

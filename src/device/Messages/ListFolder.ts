@@ -35,12 +35,12 @@ class ListFolder extends Message {
     
     try {
       // Parse the JSON response
-      const response = JSON.parse(responseText) as StandardResponse<FileInfo[]>;
+      const response = JSON.parse(responseText) as StandardResponse<{files: FileInfo[]}>;
       
       this.success = response.success;
       
       if (response.success) {
-        this.files = response.result.files || [];
+        this.files = response.result?.files || [];
       } else {
         this.error = response.errorMessage || 'Unknown error';
         this.files = [];
