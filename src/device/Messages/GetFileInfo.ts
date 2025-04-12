@@ -2,19 +2,19 @@ import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
 import { FileInfo, StandardResponse } from './ResponseTypes';
 
-class ListFolder extends Message {
+class GetFileInfo extends Message {
   public path: string = '';
-  public files: FileInfo[] = [];
-  public success: boolean = false;
+  public fileInfo: FileInfo | null = null;
   public error: string | null = null;
+  public success: boolean = false;
 
   constructor(path: string) {
-    super(MessageIds.ListFolderRequest, MessageIds.ListFolderResponse);
+    super(MessageIds.GetFileInfoRequest, MessageIds.GetFileInfoResponse);
     this.path = path;
   }
 
   public description(): string {
-    return `ListFolder: ${this.path}`;
+    return `GetFileInfo: ${this.path}`;
   }
 
   public encode(): Uint8Array {
@@ -26,7 +26,6 @@ class ListFolder extends Message {
     if (data === null) {
       this.success = false;
       this.error = 'No response received';
-      this.files = [];
       return;
     }
     
@@ -35,25 +34,23 @@ class ListFolder extends Message {
     
     try {
       // Parse the JSON response
-      const response = JSON.parse(responseText) as StandardResponse<FileInfo[]>;
+      const response = JSON.parse(responseText) as StandardResponse<FileInfo>;
       
       this.success = response.success;
       
       if (response.success) {
-        this.files = response.result.files || [];
+        this.fileInfo = response.result || null;
       } else {
         this.error = response.errorMessage || 'Unknown error';
-        this.files = [];
       }
       
-      console.log(`ListFolder response:`, response);
+      console.log(`GetFileInfo response:`, response);
     } catch (err) {
       this.success = false;
       this.error = `Failed to parse response: ${err}`;
-      this.files = [];
       console.error(this.error);
     }
   }
 }
 
-export { ListFolder };
+export { GetFileInfo }; 

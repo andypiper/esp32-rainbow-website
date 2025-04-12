@@ -2,27 +2,35 @@ import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
 import { StandardResponse } from './ResponseTypes';
 
-class WriteFile extends Message {
-  public path: string = '';
-  public data: Uint8Array = new Uint8Array();
+class RenameFile extends Message {
+  public sourcePath: string = '';
+  public destinationPath: string = '';
   public result: string = '';
   public success: boolean = false;
   public error: string | null = null;
 
-  constructor(path: string, data: Uint8Array) {
-    super(MessageIds.WriteFileRequest, MessageIds.WriteFileResponse);
-    this.path = path;
-    this.data = data;
+  constructor(sourcePath: string, destinationPath: string) {
+    super(MessageIds.RenameFileRequest, MessageIds.RenameFileResponse);
+    this.sourcePath = sourcePath;
+    this.destinationPath = destinationPath;
   }
 
   public description(): string {
-    return `WriteFile: ${this.path} - ${this.data.length} bytes`;
+    return `RenameFile: ${this.sourcePath} -> ${this.destinationPath}`;
   }
 
-  // No data - so default to superclass which is an empty array
   public encode(): Uint8Array {
-    const encodedPath = new TextEncoder().encode(this.path);
-    return new Uint8Array([...encodedPath, 0x00, ...this.data]);
+    const sourceEncoder = new TextEncoder();
+    const destEncoder = new TextEncoder();
+    
+    const encodedSource = sourceEncoder.encode(this.sourcePath);
+    const encodedDest = destEncoder.encode(this.destinationPath);
+    
+    // Format: [sourcePath]\0[destinationPath]\0
+    return new Uint8Array([
+      ...encodedSource, 0x00,
+      ...encodedDest, 0x00
+    ]);
   }
 
   public decode(data: Uint8Array | null): void {
@@ -49,7 +57,7 @@ class WriteFile extends Message {
         this.result = 'FAIL';
       }
       
-      console.log(`WriteFile response:`, response);
+      console.log(`RenameFile response:`, response);
     } catch (err) {
       this.success = false;
       this.error = `Failed to parse response: ${err}`;
@@ -59,4 +67,4 @@ class WriteFile extends Message {
   }
 }
 
-export { WriteFile };
+export { RenameFile }; 

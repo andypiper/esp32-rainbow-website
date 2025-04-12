@@ -1,50 +1,56 @@
-# React + TypeScript + Vite
+# ESP32 Flash File Browser
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based file browser for managing files on ESP32 flash storage. This project is part of the ESP32 Rainbow Website project.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Browse directories on ESP32 flash storage
+- Create, edit, and delete files
+- Create and delete directories
+- Rename files and directories
+- View file information (size, last modified date)
+- Edit text files directly in the browser
 
-## Expanding the ESLint configuration
+### Communication Protocol
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+The communication between the frontend and ESP32 uses a custom message protocol with these message types:
 
-- Configure the top-level `parserOptions` property like this:
+- ListFolder - Browse directories
+- ReadFile - Read file contents
+- WriteFile - Create or update files
+- DeleteFile - Delete files or directories
+- MakeDirectory - Create new directories
+- RenameFile - Rename files or directories
+- GetFileInfo - Get metadata about files
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Getting Started
+
+### Prerequisites
+
+- A modern web browser that supports WebSerial API (Chrome, Edge)
+- ESP32 with the appropriate firmware flashed
+
+### Installation
+
+1. Clone the repository
+2. Install the dependencies:
+
+```bash
+cd frontend
+npm install
+npm start
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Usage
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+1. Connect to your ESP32 using the "Connect" button
+2. Browse the file system
+3. Perform file operations as needed
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- Based on the ESP32 Rainbow Website project

@@ -1,9 +1,12 @@
 import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
+import { StandardResponse } from './ResponseTypes';
 
 class ReadFile extends Message {
   public path: string = '';
   public result: Uint8Array = new Uint8Array();
+  public success: boolean = false;
+  public error: string | null = null;
 
   constructor(path: string) {
     super(MessageIds.ReadFileRequest, MessageIds.ReadFileResponse);
@@ -20,10 +23,16 @@ class ReadFile extends Message {
     return new Uint8Array([...encodedPath, 0x00]);
   }
 
-  public decode(data: Uint8Array) {
-    // this will be either 'OK' or 'FAIL'
+  public decode(data: Uint8Array | null): void {
+    if (data === null || data.length === 0) {
+      this.success = false;
+      this.error = 'No response received';
+      this.result = new Uint8Array();
+      return;
+    }
+    // success - we got data back
+    this.success = true;
     this.result = data;
-    console.log(`ReadFile result: ${this.result}`);
   }
 }
 

@@ -1,20 +1,20 @@
 import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
-import { FileInfo, StandardResponse } from './ResponseTypes';
+import { StandardResponse } from './ResponseTypes';
 
-class ListFolder extends Message {
+class MakeDirectory extends Message {
   public path: string = '';
-  public files: FileInfo[] = [];
+  public result: string = '';
   public success: boolean = false;
   public error: string | null = null;
 
   constructor(path: string) {
-    super(MessageIds.ListFolderRequest, MessageIds.ListFolderResponse);
+    super(MessageIds.MakeDirectoryRequest, MessageIds.MakeDirectoryResponse);
     this.path = path;
   }
 
   public description(): string {
-    return `ListFolder: ${this.path}`;
+    return `MakeDirectory: ${this.path}`;
   }
 
   public encode(): Uint8Array {
@@ -26,7 +26,7 @@ class ListFolder extends Message {
     if (data === null) {
       this.success = false;
       this.error = 'No response received';
-      this.files = [];
+      this.result = 'FAIL';
       return;
     }
     
@@ -35,25 +35,25 @@ class ListFolder extends Message {
     
     try {
       // Parse the JSON response
-      const response = JSON.parse(responseText) as StandardResponse<FileInfo[]>;
+      const response = JSON.parse(responseText) as StandardResponse<string>;
       
       this.success = response.success;
       
       if (response.success) {
-        this.files = response.result.files || [];
+        this.result = response.result || 'OK';
       } else {
         this.error = response.errorMessage || 'Unknown error';
-        this.files = [];
+        this.result = 'FAIL';
       }
       
-      console.log(`ListFolder response:`, response);
+      console.log(`MakeDirectory response:`, response);
     } catch (err) {
       this.success = false;
       this.error = `Failed to parse response: ${err}`;
-      this.files = [];
+      this.result = 'FAIL';
       console.error(this.error);
     }
   }
 }
 
-export { ListFolder };
+export { MakeDirectory }; 
