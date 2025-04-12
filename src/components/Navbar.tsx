@@ -187,6 +187,9 @@ type NavDropdownProps = {
 function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const showTestOptions = searchParams.get('test') === 'true'
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -228,32 +231,34 @@ function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProp
           rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5
         `}>
           <div className="py-1" role="menu">
-            {children.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="block px-4 py-2 text-sm text-gray-300 hover:text-indigo-400 flex items-center"
-                onClick={() => {
-                  setIsOpen(false)
-                  onClick?.()
-                }}
-                role="menuitem"
-                target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
-              >
-                {item.icon && (
-                  <svg 
-                    className="w-5 h-5 mr-2" 
-                    fill={item.to === '/github' ? 'currentColor' : 'none'} 
-                    stroke={item.to === '/github' ? undefined : 'currentColor'} 
-                    viewBox="0 0 24 24"
-                  >
-                    {item.icon}
-                  </svg>
-                )}
-                {item.label}
-              </Link>
-            ))}
+            {children
+              .filter(item => item.id !== 'device-test' || showTestOptions)
+              .map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="block px-4 py-2 text-sm text-gray-300 hover:text-indigo-400 flex items-center"
+                  onClick={() => {
+                    setIsOpen(false)
+                    onClick?.()
+                  }}
+                  role="menuitem"
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                >
+                  {item.icon && (
+                    <svg 
+                      className="w-5 h-5 mr-2" 
+                      fill={item.to === '/github' ? 'currentColor' : 'none'} 
+                      stroke={item.to === '/github' ? undefined : 'currentColor'} 
+                      viewBox="0 0 24 24"
+                    >
+                      {item.icon}
+                    </svg>
+                  )}
+                  {item.label}
+                </Link>
+              ))}
           </div>
         </div>
       )}
@@ -263,6 +268,13 @@ function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProp
 
 function NavItem(props: NavItemProps) {
   const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const showTestOptions = searchParams.get('test') === 'true'
+  
+  // Hide device-test nav item unless test=true
+  if (props.id === 'device-test' && !showTestOptions) {
+    return null
+  }
 
   if (props.children && Array.isArray(props.children)) {
     return <NavDropdown {...props} children={props.children} />

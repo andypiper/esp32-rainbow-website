@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Game } from '../../types/game';
 import { ensureBaseUrl, getProxyUrl } from '../../utils/urls';
+import { sendFileToDevice } from '../../utils/deviceFileTransfer';
 
 interface Props {
   game: Game;
@@ -15,6 +16,12 @@ const SUPPORTED_NOW = ['tap.zip', 'tzx.zip', 'z80.zip', 'sna.zip'];
 
 export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('playable');
+  const [transferInProgress, setTransferInProgress] = useState<boolean>(false);
+  const [transferFileName, setTransferFileName] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
+
+  // Determine machine type based on game metadata
+  const machineType = game.m === 'ZX-Spectrum 48K' ? '48k' : '128k';
 
   const isPlayableFile = (file: Game['f'][0]) => {
     return PLAYABLE.some(ext => file.l.endsWith(ext));
@@ -31,7 +38,6 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
 
   const getEmulatorUrl = (file: Game['f'][0]) => {
     const proxyUrl = getProxyUrl(file.l);
-    const machineType = game.m === 'ZX-Spectrum 48K' ? '48k' : '128k';
     return `/emulator?file=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(game.t)}&machine=${machineType}`;
   };
 
@@ -61,11 +67,48 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
     { id: 'other', label: 'Other Files', count: otherFiles.length },
   ].filter(tab => tab.count > 0);
 
+  // New function to handle sending file to device
+  const handleSendToDevice = async (file: Game['f'][0]) => {
+    const fileUrl = getProxyUrl(ensureBaseUrl(file.l));
+    const fileName = getFilenameFromUrl(file.l);
+    
+    // Set global transfer in progress state
+    setTransferInProgress(true);
+    setTransferFileName(fileName);
+    
+    try {
+      const result = await sendFileToDevice(fileUrl, machineType);
+      setStatusMessage({ text: result, type: 'success' });
+    } catch (error) {
+      setStatusMessage({ 
+        text: error instanceof Error ? error.message : 'Failed to send file to device', 
+        type: 'error' 
+      });
+    } finally {
+      setTransferInProgress(false);
+      setTransferFileName(null);
+      
+      // Clear status message after 5 seconds
+      setTimeout(() => {
+        setStatusMessage(null);
+      }, 5000);
+    }
+  };
+
   if (tabs.length === 0) return null;
 
   return (
     <section id="files" className="mt-8">
       <h2 className="text-xl font-semibold text-gray-100 mb-4">Files</h2>
+      
+      {/* Status message */}
+      {statusMessage && (
+        <div className={`p-3 mb-4 rounded ${
+          statusMessage.type === 'success' ? 'bg-green-700' : 'bg-red-700'
+        }`}>
+          {statusMessage.text}
+        </div>
+      )}
       
       {/* Entire file list container with background */}
       <div className="bg-gray-850 rounded-lg p-4">
@@ -122,15 +165,25 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                           Download
                         </a>
                         {isPlayableFile(file) && isSupportedNow(file) && (
-                          <a
-                            href={getEmulatorUrl(file)}
-                            className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Opens in a new tab"
-                          >
-                            Play
-                          </a>
+                          <>
+                            <a
+                              href={getEmulatorUrl(file)}
+                              className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Opens in a new tab"
+                            >
+                              Play
+                            </a>
+                            <button
+                              onClick={() => handleSendToDevice(file)}
+                              disabled={transferInProgress}
+                              className="inline-block px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-500 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                              title={transferInProgress ? 'Transfer in progress' : 'Send to connected device'}
+                            >
+                              {transferFileName === getFilenameFromUrl(file.l) ? 'Sending...' : 'Send to Device'}
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
@@ -161,15 +214,24 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                       Download
                     </a>
                     {isPlayableFile(file) && isSupportedNow(file) && (
-                      <a
-                        href={getEmulatorUrl(file)}
-                        className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors text-center"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Opens in a new tab"
-                      >
-                        Play
-                      </a>
+                      <>
+                        <a
+                          href={getEmulatorUrl(file)}
+                          className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-500 transition-colors text-center"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Opens in a new tab"
+                        >
+                          Play
+                        </a>
+                        <button
+                          onClick={() => handleSendToDevice(file)}
+                          disabled={transferInProgress}
+                          className="flex-1 px-3 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-500 transition-colors text-center disabled:bg-gray-600 disabled:cursor-not-allowed"
+                        >
+                          {transferFileName === getFilenameFromUrl(file.l) ? 'Sending...' : 'Send to Device'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
