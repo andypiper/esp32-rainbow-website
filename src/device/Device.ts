@@ -109,8 +109,8 @@ class Device {
             this.startProcessing();
 
             // get the version info
-            // this.versionInfo = await this.getVersion();
-            // console.log('Version info:', this.versionInfo);
+            this.versionInfo = await this.getVersion();
+            console.log('Version info:', this.versionInfo);
         } catch (error) {
             console.error("Failed to connect:", error);
             await this.disconnect();
