@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import Device from '../device/Device';
+import useDevice from '../context/useDevice';
 import FileBrowser from '../components/FileBrowser';
 import FileUploader from '../components/FileUploader';
 import { FileInfo } from '../device/Messages/ResponseTypes';
 
 function DeviceTest() {
-  const [device, setDevice] = useState<Device | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const { device, isConnected, connect, disconnect } = useDevice();
   const [folderPath, setFolderPath] = useState('/');
-  const [version, setVersion] = useState<string | null>(null);
+  const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null);
+  const [hardwareVersion, setHardwareVersion] = useState<string | null>(null);
   const [fileList, setFileList] = useState<FileInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(false);
@@ -18,28 +18,12 @@ function DeviceTest() {
   useEffect(() => {
     // Check if Web Serial API is supported
     setIsSupported('serial' in navigator);
-    
-    // Initialize device if supported
-    if ('serial' in navigator) {
-      const newDevice = new Device();
-      setDevice(newDevice);
-
-      // Cleanup on unmount
-      return () => {
-        if (newDevice.isConnected()) {
-          newDevice.disconnect().catch(console.error);
-        }
-      };
-    }
   }, []);
 
   const handleConnect = async () => {
-    if (!device) return;
-    
     try {
       setError(null);
-      await device.connect();
-      setIsConnected(true);
+      await connect();
       console.log('Connected to device successfully');
       // After connecting, automatically list the root directory
       handleListFolder(folderPath);
@@ -51,12 +35,10 @@ function DeviceTest() {
   };
 
   const handleDisconnect = async () => {
-    if (!device) return;
-    
     try {
-      await device.disconnect();
-      setIsConnected(false);
-      setVersion(null);
+      await disconnect();
+      setFirmwareVersion(null);
+      setHardwareVersion(null);
       setFileList([]);
       console.log('Disconnected from device');
     } catch (err) {
@@ -67,13 +49,14 @@ function DeviceTest() {
   };
 
   const handleGetVersion = async () => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
-      const versionStr = await device.getVersion();
-      setVersion(versionStr);
-      console.log('Device version:', versionStr);
+      const versionInfo = await device.getVersion();
+      setFirmwareVersion(versionInfo.firmwareVersion);
+      setHardwareVersion(versionInfo.hardwareVersion);
+      console.log('Device version:', versionInfo);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`Failed to get version: ${errorMessage}`);
@@ -82,7 +65,7 @@ function DeviceTest() {
   };
 
   const handleListFolder = async (path: string = folderPath) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     console.log('Listing folder', path);
     try {
       setError(null);
@@ -107,7 +90,7 @@ function DeviceTest() {
   };
 
   const handleDeleteFile = async (path: string) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
@@ -131,7 +114,7 @@ function DeviceTest() {
   };
 
   const handleRenameFile = async (oldPath: string, newPath: string) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
@@ -155,7 +138,7 @@ function DeviceTest() {
   };
 
   const handleCreateDirectory = async (path: string) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
@@ -179,7 +162,7 @@ function DeviceTest() {
   };
 
   const handleGetFileInfo = async (path: string) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
@@ -198,7 +181,7 @@ function DeviceTest() {
   };
 
   const handleSelectFile = async (path: string) => {
-    if (!device || !isConnected) return;
+    if (!isConnected) return;
     
     try {
       setError(null);
@@ -223,7 +206,7 @@ function DeviceTest() {
 
 
   const handleDownloadFile = async (path: string): Promise<Uint8Array> => {
-    if (!device || !isConnected) {
+    if (!isConnected) {
       throw new Error('Not connected to device');
     }
     
@@ -246,8 +229,8 @@ function DeviceTest() {
     }
   };
 
-  const handleUploadFile = async (path: string, data: Uint8Array): Promise<string> => {
-    if (!device || !isConnected) {
+  const handleUploadFile = async (path: string, data: Uint8Array): Promise<boolean> => {
+    if (!isConnected) {
       throw new Error('Not connected to device');
     }
     
@@ -299,8 +282,8 @@ function DeviceTest() {
           
           <button
             onClick={handleDisconnect}
-            disabled={!isConnected || !isSupported}
-            className={`px-4 py-2 rounded ${!isConnected || !isSupported 
+            disabled={!isSupported || !isConnected}
+            className={`px-4 py-2 rounded ${!isSupported || !isConnected 
               ? 'bg-gray-500 cursor-not-allowed' 
               : 'bg-red-600 hover:bg-red-700'}`}
           >
@@ -309,18 +292,24 @@ function DeviceTest() {
           
           <button
             onClick={handleGetVersion}
-            disabled={!isConnected || !isSupported}
-            className={`px-4 py-2 rounded ${!isConnected || !isSupported 
+            disabled={!isSupported || !isConnected}
+            className={`px-4 py-2 rounded ${!isSupported || !isConnected 
               ? 'bg-gray-500 cursor-not-allowed' 
               : 'bg-blue-600 hover:bg-blue-700'}`}
           >
             Get Version
           </button>
           
-          {version && (
+          {firmwareVersion && (
             <div className="px-4 py-2 bg-gray-800 rounded flex items-center">
               <span className="font-medium mr-1">Version:</span>
-              <span>{version}</span>
+              <span>{firmwareVersion}</span>
+            </div>
+          )}
+          {hardwareVersion && (
+            <div className="px-4 py-2 bg-gray-800 rounded flex items-center">
+              <span className="font-medium mr-1">Hardware:</span>
+              <span>{hardwareVersion}</span>
             </div>
           )}
         </div>
@@ -353,8 +342,8 @@ function DeviceTest() {
               
               <button
                 onClick={() => handleListFolder()}
-                disabled={!isConnected || !isSupported}
-                className={`px-4 py-2 rounded ${!isConnected || !isSupported 
+                disabled={!isSupported || !isConnected}
+                className={`px-4 py-2 rounded ${!isSupported || !isConnected 
                   ? 'bg-gray-500 cursor-not-allowed' 
                   : 'bg-blue-600 hover:bg-blue-700'}`}
               >

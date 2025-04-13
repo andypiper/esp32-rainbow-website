@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Game } from '../../types/game';
 import { ensureBaseUrl, getProxyUrl } from '../../utils/urls';
-import { sendFileToDevice } from '../../utils/deviceFileTransfer';
-
+import { useSendFileToDevice } from '../../utils/deviceFileTransfer';
+import useDevice from '../../context/useDevice';
 interface Props {
   game: Game;
   formatFileSize: (bytes: number) => string;
@@ -16,9 +16,10 @@ const SUPPORTED_NOW = ['tap.zip', 'tzx.zip', 'z80.zip', 'sna.zip'];
 
 export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('playable');
-  const [transferInProgress, setTransferInProgress] = useState<boolean>(false);
   const [transferFileName, setTransferFileName] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
+  const { isAvailable: isSerialAvailable } = useDevice();
+  const { sendFile, isTransferInProgress: transferInProgress, transferMessage, transferProgressPercentage } = useSendFileToDevice();
 
   // Determine machine type based on game metadata
   const machineType = game.m === 'ZX-Spectrum 48K' ? '48k' : '128k';
@@ -67,17 +68,21 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
     { id: 'other', label: 'Other Files', count: otherFiles.length },
   ].filter(tab => tab.count > 0);
 
-  // New function to handle sending file to device
+  // Updated function to handle sending file to device
   const handleSendToDevice = async (file: Game['f'][0]) => {
+    if (!isSerialAvailable) {
+      alert('Web Serial is not supported in this browser. Please use Chrome, Edge, or another compatible browser.');
+      return;
+    }
+
     const fileUrl = getProxyUrl(ensureBaseUrl(file.l));
     const fileName = getFilenameFromUrl(file.l);
     
-    // Set global transfer in progress state
-    setTransferInProgress(true);
+    // Set local state for UI feedback
     setTransferFileName(fileName);
     
     try {
-      const result = await sendFileToDevice(fileUrl, machineType);
+      const result = await sendFile(fileUrl, machineType);
       setStatusMessage({ text: result, type: 'success' });
     } catch (error) {
       setStatusMessage({ 
@@ -85,7 +90,6 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
         type: 'error' 
       });
     } finally {
-      setTransferInProgress(false);
       setTransferFileName(null);
       
       // Clear status message after 5 seconds
@@ -107,6 +111,23 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
           statusMessage.type === 'success' ? 'bg-green-700' : 'bg-red-700'
         }`}>
           {statusMessage.text}
+        </div>
+      )}
+      { /* transfer progress */}
+      {transferInProgress && (
+        <div className="p-3 mb-4 rounded bg-blue-700">
+          <div className="flex flex-col">
+            <div className="flex justify-between mb-1">
+              <span>{transferMessage}</span>
+              <span>{Math.round(transferProgressPercentage)}%</span>
+            </div>
+            <div className="w-full bg-blue-900 rounded-full h-2.5">
+              <div 
+                className="bg-blue-300 h-2.5 rounded-full transition-all duration-300" 
+                style={{ width: `${transferProgressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       )}
       

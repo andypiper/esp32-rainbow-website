@@ -2,18 +2,23 @@ import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
 import { StandardResponse } from './ResponseTypes';
 
-interface VersionInfo {
-  version: {
-    major: number;
-    minor: number;
-    build: number;
+export interface VersionInfo {
+  firmwareVersion: string;
+  hardwareVersion: string;
+  flash: {
+    available: boolean,
+    total: number,
+    used: number
+  },
+  sd: {
+    available: boolean,
+    total: number,
+    used: number
   }
 }
 
 class GetVersion extends Message {
-  public major: number = 0;
-  public minor: number = 0;
-  public build: number = 0;
+  public versionInfo: VersionInfo | null = null;
   public success: boolean = false;
   public error: string | null = null;
 
@@ -45,9 +50,7 @@ class GetVersion extends Message {
       this.success = response.success;
       
       if (response.success && response.result) {
-        this.major = response.result.version.major;
-        this.minor = response.result.version.minor;
-        this.build = response.result.version.build;
+        this.versionInfo = response.result;
       } else {
         this.error = response.errorMessage || 'Unknown error';
       }

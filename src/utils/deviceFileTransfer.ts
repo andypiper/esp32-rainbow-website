@@ -1,11 +1,8 @@
-import Device from '../device/Device';
+import { useState } from 'react';
+import useDevice from '../context/useDevice';
 import { ArchiveFile } from './archiveHelpers';
 import { loadWasmModule } from './tapToZ80Converter';
 
-// Global device instance that can be reused
-let deviceInstance: Device | null = null;
-// Flag to track if a transfer is currently in progress
-let transferInProgress = false;
 // Cache for the WASM module
 let wasmModuleCache: {convertTapeToZ80: (name: string, data: Uint8Array, is128k: boolean) => Uint8Array | null} | null = null;
 
@@ -154,69 +151,65 @@ async function convertTapeFileToZ80(tapeFile: ArchiveFile, machineType: string):
 }
 
 /**
- * Sends a file to the connected device
- * @param fileUrl URL of the file to send (can be a ZIP archive)
- * @param machineType Optional machine type (48k or 128k) for TAP/TZX conversion
- * @returns Promise that resolves with success message or rejects with error
+ * React hook for sending files to the device
  */
-export async function sendFileToDevice(fileUrl: string, machineType?: string): Promise<string> {
-  // Prevent multiple simultaneous transfers
-  if (transferInProgress) {
-    throw new Error('A file transfer is already in progress. Please wait for it to complete.');
-  }
+export const useSendFileToDevice = () => {
+  const { device, isConnected, connect } = useDevice();
+  const [transferInProgress, setTransferInProgress] = useState(false);
+  const [transferMessage, setTransferMessage] = useState('');
+  const [transferProgressPercentage, setTransferProgressPercentage] = useState(0);
   
-  try {
-    transferInProgress = true;
-    console.log('Sending file to device:', fileUrl, machineType ? `(${machineType})` : '');
-    // Download and process the file
-    const fileData = await downloadAndProcessFile(fileUrl, machineType);
-    if (!fileData) {
-      throw new Error('Could not process file');
+  const sendFile = async (fileUrl: string, machineType?: string): Promise<string> => {
+    // Prevent multiple simultaneous transfers
+    if (transferInProgress) {
+      throw new Error('A file transfer is already in progress. Please wait for it to complete.');
     }
     
-    // Connect to device if not already connected
-    if (!deviceInstance) {
-      deviceInstance = new Device();
-    }
-    
-    if (!deviceInstance.isConnected()) {
-      await deviceInstance.connect();
-    }
+    try {
+      setTransferInProgress(true);
+      // Download and process the file
+      setTransferMessage('Downloading and extracting file...');
+      setTransferProgressPercentage(0);
+      console.log('Sending file to device:', fileUrl, machineType ? `(${machineType})` : '');
+      
+      const fileData = await downloadAndProcessFile(fileUrl, machineType);
+      if (!fileData) {
+        throw new Error('Could not process file');
+      }
+      
+      // Connect to device if not already connected
+      if (!isConnected) {
+        await connect();
+      }
 
-    const version = await deviceInstance.getVersion();
-    console.log('Device version:', version);
-    
-    // Write file to device
-    console.log('Writing file to device:', "|" +fileData.name + "|");
-    await deviceInstance.writeFile("/" + fileData.name, fileData.data);
-    
-    return `File successfully sent to device: ${fileData.name}`;
-  } catch (error) {
-    console.error('Error sending file to device:', error);
-    if (error instanceof Error) {
-      throw error;
-    } else {
-      throw new Error('Unknown error occurred while sending file to device');
+      const version = await device.getVersion();
+      console.log('Device version:', version);
+      setTransferMessage('Writing file to device...');
+      setTransferProgressPercentage(0);
+      // Write file to device
+      console.log('Writing file to device:', "|" + fileData.name + "|");
+      await device.writeFile("/" + fileData.name, fileData.data, (progress: number) => {
+        setTransferProgressPercentage(progress);
+      });
+      setTransferMessage('File successfully sent to device');
+      setTransferProgressPercentage(100);
+      return `File successfully sent to device: ${fileData.name}`;
+    } catch (error) {
+      console.error('Error sending file to device:', error);
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('Unknown error occurred while sending file to device');
+      }
+    } finally {
+      setTransferInProgress(false);
     }
-  } finally {
-    transferInProgress = false;
-  }
-}
-
-/**
- * Checks if a file transfer is currently in progress
- * @returns boolean indicating if a transfer is in progress
- */
-export function isTransferInProgress(): boolean {
-  return transferInProgress;
-}
-
-/**
- * Ensures the device is disconnected
- */
-export async function disconnectDevice(): Promise<void> {
-  if (deviceInstance && deviceInstance.isConnected()) {
-    await deviceInstance.disconnect();
-    deviceInstance = null;
-  }
-} 
+  };
+  
+  return { 
+    sendFile, 
+    isTransferInProgress: transferInProgress,
+    transferMessage,
+    transferProgressPercentage
+  };
+};

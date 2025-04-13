@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 interface FileUploaderProps {
   currentPath: string;
-  onUpload: (path: string, data: Uint8Array) => Promise<string>;
+  onUpload: (path: string, data: Uint8Array) => Promise<boolean>;
   isLoading?: boolean;
 }
 

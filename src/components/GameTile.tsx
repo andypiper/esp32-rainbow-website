@@ -91,9 +91,9 @@ export default function GameTile({
           <p className="truncate">Genre: {game.g}</p>
           <p className="truncate">Machine: {game.m}</p>
           {game.sc ? (
-            <p className="mt-1">
+            <div className="mt-1">
               <StarRating score={game.sc} />
-            </p>
+            </div>
           ) : null}
         </div>
       </div>

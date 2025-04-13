@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import Banner from './Banner'
+import DeviceStatus from './DeviceStatus'
 
 type SubNavItem = {
   to: string
@@ -319,105 +320,100 @@ function NavItem(props: NavItemProps) {
 }
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
-    <nav className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700 shadow-lg" role="navigation" aria-label="Main navigation">
+    <div className="sticky top-0 z-50 bg-gray-900 shadow-lg">
       <Banner />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <Link 
-            to="/" 
-            className="text-indigo-400 hover:text-indigo-300 font-bold text-xl flex items-center whitespace-nowrap" 
-            aria-label="ESP32 Rainbow Home"
-          >
-            <svg 
-              className="w-6 h-6 mr-2" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div className="relative flex items-center justify-between h-16">
+          {/* Mobile menu button */}
+          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              aria-expanded="false"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-              />
-            </svg>
-            ESP32 Rainbow
-          </Link>
-
-          {/* Hamburger menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="[&]:min-[1000px]:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:ring-none"
-            aria-expanded={isOpen}
-            aria-controls="mobile-menu"
-            aria-label="Toggle navigation menu"
-          >
-            <svg
-              className="h-6 w-6 transition-transform duration-200 ease-in-out"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                className={`transform origin-center transition-transform duration-200 ease-in-out ${
-                  isOpen ? 'scale-0' : 'scale-100'
-                }`}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-              <path
-                className={`transform origin-center transition-transform duration-200 ease-in-out ${
-                  isOpen ? 'scale-100' : 'scale-0'
-                }`}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-
-          {/* Desktop menu */}
-          <div className="hidden min-[1000px]:flex space-x-8 items-center" role="menubar">
-            {navigationItems.map((item) => (
-              <NavItem key={item.id} {...item} />
-            ))}
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        </div>
 
-        {/* Mobile menu */}
-        <div 
-          id="mobile-menu"
-          className={`
-            transform transition-all duration-300 ease-in-out
-            ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
-            min-[1000px]:hidden overflow-hidden
-          `}
-          style={{
-            maxHeight: isOpen ? '400px' : '0px',
-            transition: 'max-height 300ms ease-in-out, opacity 200ms ease-in-out, transform 200ms ease-in-out'
-          }}
-          role="menu"
-          aria-label="Mobile navigation"
-        >
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {navigationItems.map((item) => (
-              <NavItem 
-                key={item.id} 
-                {...item} 
-                mobile 
-                onClick={() => setIsOpen(false)}
-              />
-            ))}
+          {/* Logo section */}
+          <div className="flex-shrink-0 flex items-center">
+            <Link to="/" className="text-white text-xl font-bold">
+              <span className="text-indigo-500">ESP32</span> Rainbow
+            </Link>
+          </div>
+          
+          {/* Navigation items - centered in available space */}
+          <div className="hidden sm:flex flex-1 justify-center sm:ml-6 sm:mr-6">
+            <div className="flex space-x-4">
+              {navigationItems.map((item) =>
+                item.children ? (
+                  <NavDropdown
+                    key={item.id}
+                    label={item.label}
+                    icon={item.icon}
+                    children={item.children}
+                  />
+                ) : (
+                  <NavItem key={item.id} {...item} />
+                )
+              )}
+            </div>
+          </div>
+          
+          {/* DeviceStatus - always on the right */}
+          <div className="flex items-center">
+            <DeviceStatus />
           </div>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile menu */}
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+        <div className="px-2 pt-2 pb-3 space-y-1">
+          {navigationItems.map((item) =>
+            item.children ? (
+              <NavDropdown
+                key={item.id}
+                label={item.label}
+                icon={item.icon}
+                children={item.children}
+                mobile
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+            ) : (
+              <NavItem
+                key={item.id}
+                {...item}
+                mobile
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+            )
+          )}
+        </div>
+      </div>
+    </div>
   )
 } 

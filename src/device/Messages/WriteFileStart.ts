@@ -2,7 +2,7 @@ import { Message } from '../MessageHandler';
 import { MessageIds } from './MessageIds';
 import { StandardResponse } from './ResponseTypes';
 
-class WriteFile extends Message {
+class WriteFileStart extends Message {
   public path: string = '';
   public data: Uint8Array = new Uint8Array();
   public result: string = '';
@@ -10,19 +10,25 @@ class WriteFile extends Message {
   public error: string | null = null;
 
   constructor(path: string, data: Uint8Array) {
-    super(MessageIds.WriteFileRequest, MessageIds.WriteFileResponse);
+    super(MessageIds.WriteFileStartRequest, MessageIds.WriteFileStartResponse);
     this.path = path;
     this.data = data;
   }
 
   public description(): string {
-    return `WriteFile: ${this.path} - ${this.data.length} bytes`;
+    return `WriteFileStart: ${this.path} - ${this.data.length} bytes`;
   }
 
   // No data - so default to superclass which is an empty array
   public encode(): Uint8Array {
     const encodedPath = new TextEncoder().encode(this.path);
-    return new Uint8Array([...encodedPath, 0x00, ...this.data]);
+    return new Uint8Array([
+      ...encodedPath, 0x00,
+      this.data.length & 0xff,
+      (this.data.length >> 8) & 0xff,
+      (this.data.length >> 16) & 0xff,
+      (this.data.length >> 24) & 0xff,
+    ]);
   }
 
   public decode(data: Uint8Array | null): void {
@@ -49,7 +55,7 @@ class WriteFile extends Message {
         this.result = 'FAIL';
       }
       
-      console.log(`WriteFile response:`, response);
+      console.log(`WriteFileStart response:`, response);
     } catch (err) {
       this.success = false;
       this.error = `Failed to parse response: ${err}`;
@@ -59,4 +65,4 @@ class WriteFile extends Message {
   }
 }
 
-export { WriteFile };
+export { WriteFileStart };

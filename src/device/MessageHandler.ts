@@ -218,7 +218,7 @@ class MessageHandler {
   }
 
   // Wait for a packet to be received from the device
-  async waitForPacket(type: number, timeout: number = 30000) {
+  async waitForPacket(type: number, timeout: number = 5000) {
     const resultPromise = new Deferred<Uint8Array | null>();
     
     // If there's already a pending promise for this command type, reject it
