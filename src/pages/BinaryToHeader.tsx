@@ -1,20 +1,17 @@
 import { Helmet } from 'react-helmet-async'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 
 export default function BinaryToHeader() {
-  const [fileName, setFileName] = useState<string>('')
   const [customName, setCustomName] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const [fileData, setFileData] = useState<Uint8Array | null>(null)
   const [headerContent, setHeaderContent] = useState<string>('')
   const [cppContent, setCppContent] = useState<string>('')
-  const [zipUrl, setZipUrl] = useState<string>('')
 
   const handleFile = async (file: File) => {
     try {
       setError('')
-      setZipUrl('')
       
       // Read the file as ArrayBuffer
       const buffer = await file.arrayBuffer()
@@ -29,7 +26,6 @@ export default function BinaryToHeader() {
       
       // Replace invalid chars with underscores
       const safeName = baseName.replace(/[^a-zA-Z0-9_]/g, '_')
-      setFileName(safeName)
       setCustomName(safeName)
       
       // Generate C/C++ files
@@ -126,7 +122,6 @@ extern const uint8_t ${name}[] = {`
       
       // Create download URL
       const url = URL.createObjectURL(content)
-      setZipUrl(url)
       
       // Create and click download link
       const link = document.createElement('a')
