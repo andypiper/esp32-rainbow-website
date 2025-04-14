@@ -15,6 +15,7 @@ import ScrToPng from './pages/ScrToPng'
 import TapToWav from './pages/TapToWav'
 import TapToZ80 from './pages/TapToZ80'
 import DeviceTest from './pages/DeviceTest'
+import BinaryToHeader from './pages/BinaryToHeader'
 
 // Create a new component to handle route changes and layout
 function Layout() {
@@ -52,6 +53,7 @@ function Layout() {
           <Route path="/tools/scr-to-png" element={<ScrToPng />} />
           <Route path="/tools/tap-to-wav" element={<TapToWav />} />
           <Route path="/tools/tap-to-z80" element={<TapToZ80 />} />
+          <Route path="/tools/binary-to-header" element={<BinaryToHeader />} />
           <Route path="/device-test" element={<DeviceTest />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">

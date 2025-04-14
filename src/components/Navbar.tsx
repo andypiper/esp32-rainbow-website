@@ -156,6 +156,19 @@ const navigationItems: NavItem[] = [
         )
       },
       {
+        to: '/tools/binary-to-header',
+        label: 'Binary to C/C++',
+        id: 'binary-to-header',
+        icon: (
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+          />
+        )
+      },
+      {
         to: '/device-test',
         label: 'Device Test',
         id: 'device-test',
