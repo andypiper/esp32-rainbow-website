@@ -76,9 +76,9 @@ export async function getFirmwareReleases(): Promise<Board[]> {
 
   // Build up releases for each board
   const boardsWithReleases = BOARDS.map(board => {
-    let releases: FirmwareRelease[] = githubReleases.map((release: any) => {
+    let releases: FirmwareRelease[] = githubReleases.map((release: { tag_name: string; name?: string; body?: string; assets?: { name: string; browser_download_url: string; }[]; published_at?: string; }) => {
       const files: FirmwareFile[] = (release.assets || [])
-        .map((asset: any) => {
+        .map((asset: { name: string; browser_download_url: string; }) => {
           const { slug, type } = parseAsset(asset.name);
           if (slug === board.slug && type) {
             return { type, url: asset.browser_download_url };
@@ -98,10 +98,10 @@ export async function getFirmwareReleases(): Promise<Board[]> {
 
     // Sort releases by published_at (newest first)
     releases = releases.sort((a, b) => {
-      const aRelease = githubReleases.find((r: any) => (r.tag_name === a.version));
-      const bRelease = githubReleases.find((r: any) => (r.tag_name === b.version));
-      const aDate = aRelease ? new Date(aRelease.published_at).getTime() : 0;
-      const bDate = bRelease ? new Date(bRelease.published_at).getTime() : 0;
+      const aRelease = githubReleases.find((r: { tag_name: string; published_at?: string }) => (r.tag_name === a.version));
+      const bRelease = githubReleases.find((r: { tag_name: string; published_at?: string }) => (r.tag_name === b.version));
+      const aDate = aRelease ? new Date(aRelease.published_at ?? 0).getTime() : 0;
+      const bDate = bRelease ? new Date(bRelease.published_at ?? 0).getTime() : 0;
       return bDate - aDate;
     });
 

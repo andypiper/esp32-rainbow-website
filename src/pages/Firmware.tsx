@@ -22,7 +22,7 @@ export default function Firmware() {
     setLoadingBoards(true)
     getFirmwareReleases()
       .then((data) => setBoards(data))
-      .catch((err) => setErrorMessage('Failed to fetch firmware releases'))
+      .catch((_err) => setErrorMessage('Failed to fetch firmware releases'))
       .finally(() => setLoadingBoards(false))
   }, [])
 

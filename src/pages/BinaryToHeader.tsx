@@ -78,7 +78,7 @@ extern const uint8_t ${name}[] = {`
     if (file) {
       handleFile(file)
     }
-  }, [])
+  }, [handleFile])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
