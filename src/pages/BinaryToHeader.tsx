@@ -9,49 +9,22 @@ export default function BinaryToHeader() {
   const [headerContent, setHeaderContent] = useState<string>('')
   const [cppContent, setCppContent] = useState<string>('')
 
-  const handleFile = async (file: File) => {
-    try {
-      setError('')
-      
-      // Read the file as ArrayBuffer
-      const buffer = await file.arrayBuffer()
-      const data = new Uint8Array(buffer)
-      setFileData(data)
-      
-      // Extract filename without extension for variable name
-      const fullName = file.name
-      const baseName = fullName.includes('.') 
-        ? fullName.substring(0, fullName.lastIndexOf('.')) 
-        : fullName
-      
-      // Replace invalid chars with underscores
-      const safeName = baseName.replace(/[^a-zA-Z0-9_]/g, '_')
-      setCustomName(safeName)
-      
-      // Generate C/C++ files
-      generateFiles(safeName, data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process file')
+  // Helper to sanitize variable names for C/C++
+  function sanitizeName(name: string) {
+    let safeName = name.replace(/[^a-zA-Z0-9_]/g, '_')
+    if (!/^[a-zA-Z_]/.test(safeName)) {
+      safeName = '_' + safeName
     }
+    return safeName
   }
 
-  const generateFiles = (name: string, data: Uint8Array) => {
+  const generateFiles = useCallback((name: string, data: Uint8Array) => {
+    const safeName = sanitizeName(name)
     // Generate header file
-    const headerFile = `#ifndef __${name}_h__
-#define __${name}_h__
-#include <cstdint>
-#include <cstddef>
-
-extern const uint8_t ${name}[];
-extern const size_t ${name}_len;
-#endif // __${name}_h__`
+    const headerFile = `#ifndef __${safeName}_h__\n#define __${safeName}_h__\n#include <cstdint>\n#include <cstddef>\n\nextern const uint8_t ${safeName}[];\nextern const size_t ${safeName}_len;\n#endif // __${safeName}_h__`
 
     // Generate CPP file
-    let cppFile = `#include "${name}.h"
-
-extern const size_t ${name}_len = ${data.length};
-
-extern const uint8_t ${name}[] = {`
+    let cppFile = `#include \"${safeName}.h\"\n\nextern const size_t ${safeName}_len = ${data.length};\n\nextern const uint8_t ${safeName}[] = {`
 
     // Format the binary data in rows of 12 bytes
     for (let i = 0; i < data.length; i++) {
@@ -68,7 +41,31 @@ extern const uint8_t ${name}[] = {`
 
     setHeaderContent(headerFile)
     setCppContent(cppFile)
-  }
+  }, [])
+
+  const handleFile = useCallback(async (file: File) => {
+    try {
+      setError('')
+      
+      // Read the file as ArrayBuffer
+      const buffer = await file.arrayBuffer()
+      const data = new Uint8Array(buffer)
+      setFileData(data)
+      
+      // Extract filename without extension for variable name
+      const fullName = file.name
+      const baseName = fullName.includes('.') 
+        ? fullName.substring(0, fullName.lastIndexOf('.')) 
+        : fullName
+      
+      setCustomName(baseName)
+      
+      // Generate C/C++ files
+      generateFiles(baseName, data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to process file')
+    }
+  }, [generateFiles])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -98,7 +95,7 @@ extern const uint8_t ${name}[] = {`
   }
 
   const handleCustomNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value.replace(/[^a-zA-Z0-9_]/g, '_')
+    const newName = e.target.value
     setCustomName(newName)
     if (fileData) {
       generateFiles(newName, fileData)
@@ -184,15 +181,20 @@ extern const uint8_t ${name}[] = {`
             <div className="mb-4 space-y-4">
               <div>
                 <label className="block text-gray-300 mb-2">Variable name:</label>
-                <input
-                  type="text"
-                  value={customName}
-                  onChange={handleCustomNameChange}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2 w-full max-w-md"
-                  placeholder="Enter variable name"
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    type="text"
+                    value={customName}
+                    onChange={handleCustomNameChange}
+                    className="bg-gray-700 border border-gray-600 rounded px-3 py-2 w-full max-w-md"
+                    placeholder="Enter variable name"
+                  />
+                  <span className="text-gray-400 text-sm whitespace-nowrap">
+                    Sanitized: <code className="bg-gray-800 px-2 py-1 rounded">{sanitizeName(customName)}</code>
+                  </span>
+                </div>
                 <p className="text-gray-400 text-sm mt-1">
-                  Only letters, numbers, and underscores allowed. Both uppercase and lowercase letters are preserved.
+                  Only letters, numbers, and underscores allowed. Must start with a letter or underscore for C/C++.
                 </p>
               </div>
             </div>
