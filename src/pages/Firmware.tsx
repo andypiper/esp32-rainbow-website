@@ -1,34 +1,38 @@
-import { useState } from 'react'
-import { AVAILABLE_FIRMWARE, BOARD_TYPES, BoardType } from '../data/firmwareData'
+import { useState, useEffect } from 'react'
+import { getFirmwareReleases, Board, FirmwareRelease } from '../data/firmwareData'
+// Use Board, FirmwareRelease, FirmwareFile as inferred types
 import { ESPLoader, FlashOptions, LoaderOptions, Transport, IEspLoaderTerminal } from 'esptool-js'
+import { getProxyUrl } from '../utils/urls'
 import CryptoJS from 'crypto-js'
-
-interface FirmwareFile {
-  data: string;
-  address: number;
-}
+import ReactMarkdown from 'react-markdown'
 
 export default function Firmware() {
   const isSupported = typeof navigator !== 'undefined' && 'serial' in navigator
 
-  const [selectedBoard, setSelectedBoard] = useState<BoardType | ''>('')
+  const [boards, setBoards] = useState<Board[]>([])
+  const [selectedBoardSlug, setSelectedBoardSlug] = useState<string>('')
   const [selectedVersion, setSelectedVersion] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [chip, setChip] = useState<string | null>(null)
+  const [loadingBoards, setLoadingBoards] = useState(true)
 
-  const availableVersions = AVAILABLE_FIRMWARE.filter(
-    fw => !selectedBoard || fw.board === selectedBoard
-  )
+  useEffect(() => {
+    setLoadingBoards(true)
+    getFirmwareReleases()
+      .then((data) => setBoards(data))
+      .catch((err) => setErrorMessage('Failed to fetch firmware releases'))
+      .finally(() => setLoadingBoards(false))
+  }, [])
 
-  const selectedFirmware = AVAILABLE_FIRMWARE.find(
-    fw => fw.board === selectedBoard && fw.version === selectedVersion
-  )
+  const selectedBoard = boards.find(b => b.slug === selectedBoardSlug) || null
+  const availableVersions: FirmwareRelease[] = selectedBoard ? selectedBoard.releases : []
+  const selectedFirmware = availableVersions.find(fw => fw.version === selectedVersion) || null
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFirmware) return
+    if (!selectedFirmware || !selectedBoard) return
 
     class Terminal implements IEspLoaderTerminal {
       write(data: string): void {
@@ -66,28 +70,27 @@ export default function Firmware() {
       setChip(chip);
 
       // Prepare file array for flashing
-      const fileArray: FirmwareFile[] = []
-      
+      const fileArray: { data: string; address: number }[] = []
+
+      // Map file type to address
+      const addressMap: Record<string, string> = selectedBoard.addresses
+
       // Fetch all firmware files
       for (const file of selectedFirmware.files) {
-        const response = await fetch(file.path)
-        // check if the response is ok
+        const response = await fetch(getProxyUrl(file.url))
         if (!response.ok) {
-          throw new Error(`Failed to fetch file: ${file.path}`)
+          throw new Error(`Failed to fetch file: ${file.url}`)
         }
         const arrayBuffer = new Uint8Array(await response.arrayBuffer());
-        console.log("File: ", file.path);
-        console.log("Will send ", arrayBuffer.length, " bytes");
-        // Convert arrayBuffer to string in chunks
         let data = '';
-        const CHUNK_SIZE = 65536; // Process 64KB at a time
+        const CHUNK_SIZE = 65536;
         for (let i = 0; i < arrayBuffer.length; i += CHUNK_SIZE) {
-            const chunk = arrayBuffer.subarray(i, i + CHUNK_SIZE);
-            data += String.fromCharCode(...chunk);
+          const chunk = arrayBuffer.subarray(i, i + CHUNK_SIZE);
+          data += String.fromCharCode(...chunk);
         }
         fileArray.push({
           data,
-          address: parseInt(file.address, 16)
+          address: parseInt(addressMap[file.type], 16)
         })
       }
       // Flash the firmware
@@ -107,10 +110,7 @@ export default function Firmware() {
       }
 
       await esploader.writeFlash(flashOptions)
-      
-      // Reset the device after flashing
       await esploader.hardReset()
-      
       setStatus('success')
     } catch (err) {
       console.error(err)
@@ -134,7 +134,6 @@ export default function Firmware() {
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-gray-100 mb-8">Firmware Update</h1>
-
       {!isSupported && (
         <div className="mb-8 bg-red-900/30 border border-red-700 rounded-lg p-4 text-gray-100">
           <h2 className="text-sm font-semibold mb-2">Browser Not Supported</h2>
@@ -155,25 +154,22 @@ export default function Firmware() {
               Select Board Type
             </label>
             <select
-              value={selectedBoard}
+              value={selectedBoardSlug}
               onChange={(e) => {
-                setSelectedBoard(e.target.value as BoardType)
+                setSelectedBoardSlug(e.target.value)
                 setSelectedVersion('')
                 setStatus('idle')
                 setErrorMessage('')
               }}
-              className="w-full bg-gray-900 text-gray-100 px-4 py-2.5 rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-indigo-500
-                border border-gray-700 hover:border-gray-600
-                appearance-none
-                bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
-                bg-no-repeat bg-[center_right_1rem]
-                cursor-pointer
-                disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{width: '100%'}}
+              disabled={loadingBoards || !isSupported}
+              className={`w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100 ${
+                loadingBoards || !isSupported ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               <option value="">Select a board...</option>
-              {BOARD_TYPES.map(board => (
-                <option key={board} value={board}>{board}</option>
+              {boards.map(board => (
+                <option key={board.slug} value={board.slug}>{board.name}</option>
               ))}
             </select>
           </div>
@@ -190,35 +186,32 @@ export default function Firmware() {
                   setStatus('idle')
                   setErrorMessage('')
                 }}
-                className="w-full bg-gray-900 text-gray-100 px-4 py-2.5 rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500
-                  border border-gray-700 hover:border-gray-600
-                  appearance-none
-                  bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
-                  bg-no-repeat bg-[center_right_1rem]
-                  cursor-pointer
-                  disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{width: '100%'}}
+                className={`w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-gray-100 ${
+                  loadingBoards || !isSupported ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={!selectedBoard || loadingBoards}
               >
                 <option value="">Select a version...</option>
                 {availableVersions.map((fw) => (
-                  <option key={`${fw.board}-${fw.version}`} value={fw.version}>
-                    v{fw.version}
+                  <option key={`${selectedBoard.slug}-${fw.version}`} value={fw.version}>
+                    {fw.version}{fw.name && ` - ${fw.name}`}
                   </option>
                 ))}
               </select>
             </div>
           )}
 
-          {selectedFirmware && (
+          {selectedFirmware && selectedBoard && (
             <div className="bg-gray-900 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-300 mb-2">Version Details</h3>
               <div className="text-sm text-gray-400">
-                <p>{selectedFirmware.description}</p>
+                <ReactMarkdown>{selectedFirmware.description}</ReactMarkdown>
                 <div className="mt-3 space-y-1">
                   <p className="text-gray-300">Files to be flashed:</p>
                   {selectedFirmware.files.map((file, index) => (
                     <p key={index} className="pl-4">
-                      • {file.path.split('/').pop()} at {file.address}
+                      • {file.type} at {selectedBoard.addresses[file.type]}
                     </p>
                   ))}
                 </div>
@@ -247,9 +240,9 @@ export default function Firmware() {
             </div>
           )}
 
-          { chip && (
+          { chip && selectedBoard && (
             <div className="text-gray-300 bg-gray-900/30 border border-gray-700 rounded-md p-3">
-              Connected to chip: {chip}
+              Connected to board: {selectedBoard.name} ({chip})
             </div>
           )}
 
@@ -264,14 +257,13 @@ export default function Firmware() {
             disabled={
               !isSupported || 
               !selectedFirmware || 
-              status === 'uploading'
+              status === 'uploading' ||
+              loadingBoards
             }
-            className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md
-              hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
-              disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed
-              transition-colors duration-150"
+            className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md\n              hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500\n              disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed\n              transition-colors duration-150"
           >
             {!isSupported ? 'Browser Not Supported' : 
+             loadingBoards ? 'Loading...' :
              !selectedFirmware ? 'Select Firmware Version' :
              status === 'uploading' ? `Uploading... ${uploadProgress}%` : 
              'Connect and Upload'}

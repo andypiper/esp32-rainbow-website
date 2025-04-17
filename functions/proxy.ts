@@ -20,8 +20,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return new Response('Missing url parameter', { status: 400 });
   }
 
-  // Only allow requests to spectrumcomputing.co.uk
-  if (!targetUrl.startsWith('https://spectrumcomputing.co.uk/')) {
+  // Only allow requests to spectrumcomputing.co.uk 
+  // or to our github releases - https://github.com/atomic14/esp32-zxspectrum/releases/download/*
+  if (!targetUrl.startsWith('https://spectrumcomputing.co.uk/') && !targetUrl.startsWith('https://github.com/atomic14/esp32-zxspectrum/releases/download/')) {
     return new Response('Invalid target URL', { status: 400 });
   }
 

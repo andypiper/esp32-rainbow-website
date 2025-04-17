@@ -1,82 +1,112 @@
-export interface FirmwareFile {
-  address: string
-  path: string
+export type FirmwareFile = {
+  type: 'bootloader' | 'partition' | 'firmware'
+  url: string
 }
 
-export interface FirmwareRelease {
+export type FirmwareRelease = {
   version: string
+  name: string
   description: string
-}
-
-export interface FirmwareOption {
-  version: string
-  description: string
-  board: 'ESP32 Rainbow' | 'Cheap Yellow Display' | 'LilyGo T-Deck'
-  slug: string
   files: FirmwareFile[]
 }
 
-// Map board types to slugs
-const BOARD_SLUGS = {
-  'ESP32 Rainbow': 'esp32-rainbow',
-  'Cheap Yellow Display': 'cheap-yellow-display',
-  'LilyGo T-Deck': 'lilygo-tdeck'
-} as const
-
-// Map board types to chip types for correct addresses
-const CHIP_ADDRESSES = {
-  'ESP32': {
-    bootloader: '0x1000',
-    partition: '0x8000',
-    firmware: '0x10000'
-  },
-  'ESP32-S3': {
-    bootloader: '0x0000',
-    partition: '0x8000',
-    firmware: '0x10000'
+export type Board = {
+  name: string
+  slug: string
+  chip: 'ESP32' | 'ESP32-S3'
+  addresses: {
+    bootloader: string
+    partition: string
+    firmware: string
   }
-} as const
+  releases: FirmwareRelease[]
+}
 
-// Map boards to their chip types
-const BOARD_CHIPS = {
-  'ESP32 Rainbow': 'ESP32-S3',
-  'Cheap Yellow Display': 'ESP32',
-  'LilyGo T-Deck': 'ESP32-S3'
-} as const
-
-export const FIRMWARE_RELEASES: FirmwareRelease[] = [
+const BOARDS: Board[] = [
   {
-    version: '1.0.0',
-    description: 'Initial release with ZX Spectrum emulation'
+    name: 'ESP32 Rainbow',
+    slug: 'esp32-rainbow',
+    chip: 'ESP32-S3',
+    addresses: {
+      bootloader: '0x0000',
+      partition: '0x8000',
+      firmware: '0x10000'
+    },
+    // to be populated from github releases
+    releases: []
+  },
+  {
+    name: 'Cheap Yellow Display',
+    slug: 'cheap-yellow-display',
+    chip: 'ESP32',
+    addresses: {
+      bootloader: '0x1000',
+      partition: '0x8000',
+      firmware: '0x10000'
+    },
+    // to be populated from github releases
+    releases: []
   }
 ]
 
-export const AVAILABLE_FIRMWARE: FirmwareOption[] = FIRMWARE_RELEASES.flatMap(release => 
-  Object.entries(BOARD_SLUGS).map(([board, slug]) => {
-    const chipType = BOARD_CHIPS[board as keyof typeof BOARD_CHIPS];
-    const addresses = CHIP_ADDRESSES[chipType];
-    
-    return {
-      ...release,
-      board: board as keyof typeof BOARD_SLUGS,
-      slug,
-      files: [
-        { 
-          address: addresses.bootloader,
-          path: `/firmware/${slug}/v${release.version}/bootloader.bin` 
-        },
-        { 
-          address: addresses.partition,
-          path: `/firmware/${slug}/v${release.version}/partitions.bin` 
-        },
-        { 
-          address: addresses.firmware,
-          path: `/firmware/${slug}/v${release.version}/firmware.bin` 
-        }
-      ]
-    };
-  })
-)
+export async function getFirmwareReleases(): Promise<Board[]> {
+  const response = await fetch('https://api.github.com/repos/atomic14/esp32-zxspectrum/releases');
+  const githubReleases = await response.json();
 
-export const BOARD_TYPES = Object.keys(BOARD_SLUGS) as (keyof typeof BOARD_SLUGS)[]
-export type BoardType = typeof BOARD_TYPES[number] 
+  const boardSlugs = BOARDS.map(b => b.slug);
+
+  // Dynamically map asset name to board slug and file type
+  function parseAsset(assetName: string): { slug: string | null, type: 'bootloader' | 'partition' | 'firmware' | null } {
+    const lower = assetName.toLowerCase();
+    for (const slug of boardSlugs) {
+      if (lower.includes(slug)) {
+        if (lower.includes('bootloader')) return { slug, type: 'bootloader' };
+        if (lower.includes('partition')) return { slug, type: 'partition' };
+        if (lower.includes('firmware')) return { slug, type: 'firmware' };
+      }
+    }
+    // fallback for older releases (e.g., just 'bootloader.bin')
+    if (lower === 'bootloader.bin' || lower === 'firmware.bin' || lower === 'partitions.bin') {
+      if (lower === 'bootloader.bin') return { slug: 'esp32-rainbow', type: 'bootloader' };
+      if (lower === 'firmware.bin') return { slug: 'esp32-rainbow', type: 'firmware' };
+      if (lower === 'partitions.bin') return { slug: 'esp32-rainbow', type: 'partition' };
+    }
+    return { slug: null, type: null };
+  }
+
+  // Build up releases for each board
+  const boardsWithReleases = BOARDS.map(board => {
+    let releases: FirmwareRelease[] = githubReleases.map((release: any) => {
+      const files: FirmwareFile[] = (release.assets || [])
+        .map((asset: any) => {
+          const { slug, type } = parseAsset(asset.name);
+          if (slug === board.slug && type) {
+            return { type, url: asset.browser_download_url };
+          }
+          return null;
+        })
+        .filter((f: FirmwareFile | null): f is FirmwareFile => f !== null);
+      if (files.length === 0) return null;
+      return {
+        version: release.tag_name,
+        name: release.name || release.tag_name,
+        description: release.body || '',
+        files,
+        // Optionally, you could add published_at here if you want to expose it
+      };
+    }).filter((r: FirmwareRelease | null): r is FirmwareRelease => r !== null);
+
+    // Sort releases by published_at (newest first)
+    releases = releases.sort((a, b) => {
+      const aRelease = githubReleases.find((r: any) => (r.tag_name === a.version));
+      const bRelease = githubReleases.find((r: any) => (r.tag_name === b.version));
+      const aDate = aRelease ? new Date(aRelease.published_at).getTime() : 0;
+      const bDate = bRelease ? new Date(bRelease.published_at).getTime() : 0;
+      return bDate - aDate;
+    });
+
+    return { ...board, releases };
+  });
+
+  return boardsWithReleases;
+}
