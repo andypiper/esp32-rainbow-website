@@ -7,7 +7,7 @@ import { FileInfo } from '../device/Messages/ResponseTypes';
 const ROOT_PATH = '/';
 
 export default function FileBrowserPage() {
-  const { device, isConnected, connect, versionInfo, getVersion } = useDevice();
+  const { device, isConnected, versionInfo, connect, getVersion } = useDevice();
   const [activeTab, setActiveTab] = useState<'flash' | 'sd'>('flash');
   const [flashFiles, setFlashFiles] = useState<FileInfo[]>([]);
   const [sdFiles, setSdFiles] = useState<FileInfo[]>([]);
@@ -29,17 +29,15 @@ export default function FileBrowserPage() {
   }, [isConnected, versionInfo, getVersion, checkedVersion]);
 
   // Unified fetchFiles callback
-  const fetchFiles = useCallback(async (isFlash: boolean) => {
-    if (!isConnected || !versionInfo) return;
-    if (isFlash && !versionInfo.flash.available) return;
-    if (!isFlash && !versionInfo.sd.available) return;
+  const fetchFiles = useCallback(async () => {
+    if (!isConnected) return;
     setError(null);
     setIsLoading(true);
     try {
-      if (isFlash) {
+      if (activeTab === 'flash' && versionInfo?.flash.available) {
         const files = await device.listFolder(flashPath, true);
         setFlashFiles(files);
-      } else {
+      } else if (activeTab === 'sd' && versionInfo?.sd.available) {
         const files = await device.listFolder(sdPath, false);
         setSdFiles(files);
       }
@@ -48,7 +46,7 @@ export default function FileBrowserPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [isConnected, versionInfo, device, flashPath, sdPath]);
+  }, [isConnected, versionInfo, device, activeTab, flashPath, sdPath]);
 
   // Fetch files when path or tab changes
   useEffect(() => {
@@ -71,7 +69,7 @@ export default function FileBrowserPage() {
     setError(null);
     try {
       await device.deleteFile(path, activeTab === 'flash');
-      fetchFiles(activeTab === 'flash');
+      await getVersion();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -84,7 +82,7 @@ export default function FileBrowserPage() {
     setError(null);
     try {
       await device.renameFile(oldPath, newPath, activeTab === 'flash');
-      fetchFiles(activeTab === 'flash');
+      await getVersion();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -97,7 +95,7 @@ export default function FileBrowserPage() {
     setError(null);
     try {
       await device.makeDirectory(path, activeTab === 'flash');
-      fetchFiles(activeTab === 'flash');
+      await getVersion();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -149,7 +147,7 @@ export default function FileBrowserPage() {
           }
         });
       }
-      fetchFiles(activeTab === 'flash');
+      await getVersion();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -177,6 +175,13 @@ export default function FileBrowserPage() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
+  };
+
+  // Helper to format bytes
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   // UI
@@ -221,6 +226,21 @@ export default function FileBrowserPage() {
         >
           SD Card
         </button>
+      </div>
+      {/* Storage usage */}
+      <div className="flex items-center mb-4">
+        <div className="flex-grow">
+          {activeTab === 'flash' && versionInfo.flash.available && (
+            <span className="text-sm text-gray-300">
+              Flash: {formatBytes(versionInfo.flash.used)} used / {formatBytes(versionInfo.flash.total)} total
+            </span>
+          )}
+          {activeTab === 'sd' && versionInfo.sd.available && (
+            <span className="text-sm text-gray-300">
+              SD: {formatBytes(versionInfo.sd.used)} used / {formatBytes(versionInfo.sd.total)} total
+            </span>
+          )}
+        </div>
       </div>
       {error && (
         <div className="mb-4 p-3 bg-red-900 text-white rounded">{error}</div>
