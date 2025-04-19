@@ -159,7 +159,7 @@ export const useSendFileToDevice = () => {
   const [transferMessage, setTransferMessage] = useState('');
   const [transferProgressPercentage, setTransferProgressPercentage] = useState(0);
   
-  const sendFile = async (fileUrl: string, machineType?: string): Promise<string> => {
+  const sendFile = async (fileUrl: string, machineType: string, isFlash: boolean): Promise<string> => {
     // Prevent multiple simultaneous transfers
     if (transferInProgress) {
       throw new Error('A file transfer is already in progress. Please wait for it to complete.');
@@ -188,7 +188,7 @@ export const useSendFileToDevice = () => {
       setTransferProgressPercentage(0);
       // Write file to device
       console.log('Writing file to device:', "|" + fileData.name + "|");
-      await device.writeFile("/" + fileData.name, fileData.data, true, (progress: number) => {
+      await device.writeFile("/" + fileData.name, fileData.data, isFlash, (progress: number) => {
         setTransferProgressPercentage(progress);
       });
       setTransferMessage('File successfully sent to device');

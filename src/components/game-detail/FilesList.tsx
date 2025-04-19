@@ -20,6 +20,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
   const [statusMessage, setStatusMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
   const { isAvailable: isSerialAvailable } = useDevice();
   const { sendFile, isTransferInProgress: transferInProgress, transferMessage, transferProgressPercentage } = useSendFileToDevice();
+  const [promptFile, setPromptFile] = useState<Game['f'][0] | null>(null);
 
   // Determine machine type based on game metadata
   const machineType = game.m === 'ZX-Spectrum 48K' ? '48k' : '128k';
@@ -69,7 +70,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
   ].filter(tab => tab.count > 0);
 
   // Updated function to handle sending file to device
-  const handleSendToDevice = async (file: Game['f'][0]) => {
+  const handleSendToDevice = async (file: Game['f'][0], isFlash: boolean) => {
     if (!isSerialAvailable) {
       alert('Web Serial is not supported in this browser. Please use Chrome, Edge, or another compatible browser.');
       return;
@@ -77,12 +78,10 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
 
     const fileUrl = getProxyUrl(ensureBaseUrl(file.l));
     const fileName = getFilenameFromUrl(file.l);
-    
-    // Set local state for UI feedback
     setTransferFileName(fileName);
-    
+    setPromptFile(null); // Close the prompt
     try {
-      const result = await sendFile(fileUrl, machineType);
+      const result = await sendFile(fileUrl, machineType, isFlash);
       setStatusMessage({ text: result, type: 'success' });
     } catch (error) {
       setStatusMessage({ 
@@ -91,8 +90,6 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
       });
     } finally {
       setTransferFileName(null);
-      
-      // Clear status message after 5 seconds
       setTimeout(() => {
         setStatusMessage(null);
       }, 5000);
@@ -197,7 +194,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                               Play
                             </a>
                             <button
-                              onClick={() => handleSendToDevice(file)}
+                              onClick={() => setPromptFile(file)}
                               disabled={transferInProgress}
                               className="inline-block px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-500 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
                               title={transferInProgress ? 'Transfer in progress' : 'Send to connected device'}
@@ -246,7 +243,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
                           Play
                         </a>
                         <button
-                          onClick={() => handleSendToDevice(file)}
+                          onClick={() => setPromptFile(file)}
                           disabled={transferInProgress}
                           className="flex-1 px-3 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-500 transition-colors text-center disabled:bg-gray-600 disabled:cursor-not-allowed"
                         >
@@ -261,6 +258,36 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
           </div>
         </div>
       </div>
+
+      {/* Prompt for Flash or SD Card */}
+      {promptFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">Where do you want to send this file?</h3>
+            <div className="mb-4 text-gray-300 break-all">{getFilenameFromUrl(promptFile.l)}</div>
+            <div className="flex gap-4">
+              <button
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-500 transition-colors"
+                onClick={() => handleSendToDevice(promptFile, true)}
+              >
+                Send to Flash
+              </button>
+              <button
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors"
+                onClick={() => handleSendToDevice(promptFile, false)}
+              >
+                Send to SD Card
+              </button>
+            </div>
+            <button
+              className="mt-4 w-full px-4 py-2 bg-gray-700 text-gray-200 rounded hover:bg-gray-600 transition-colors"
+              onClick={() => setPromptFile(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 } 

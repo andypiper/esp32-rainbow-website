@@ -387,13 +387,6 @@ const FileBrowser = ({
                     </svg>
                     <div>
                       <span>{file.name}</span>
-                      <span className="ml-2 text-gray-400 text-xs">
-                        {file.size < 1024
-                          ? `${file.size} B`
-                          : file.size < 1024 * 1024
-                          ? `${(file.size / 1024).toFixed(1)} KB`
-                          : `${(file.size / (1024 * 1024)).toFixed(1)} MB`}
-                      </span>
                     </div>
                   </div>
 
