@@ -14,7 +14,6 @@ import { initFacebookPixel } from './utils/FacebookPixel'
 import ScrToPng from './pages/ScrToPng'
 import TapToWav from './pages/TapToWav'
 import TapToZ80 from './pages/TapToZ80'
-import DeviceTest from './pages/DeviceTest'
 import BinaryToHeader from './pages/BinaryToHeader'
 import FileBrowserPage from './pages/FileBrowser'
 
@@ -55,7 +54,6 @@ function Layout() {
           <Route path="/tools/tap-to-wav" element={<TapToWav />} />
           <Route path="/tools/tap-to-z80" element={<TapToZ80 />} />
           <Route path="/tools/binary-to-header" element={<BinaryToHeader />} />
-          <Route path="/device-test" element={<DeviceTest />} />
           <Route path="/file-browser" element={<FileBrowserPage />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">

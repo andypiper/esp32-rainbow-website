@@ -181,19 +181,6 @@ const navigationItems: NavItem[] = [
           />
         )
       },
-      {
-        to: '/device-test',
-        label: 'Device Test',
-        id: 'device-test',
-        icon: (
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-          />
-        )
-      }
     ]
   }
 ]
@@ -214,9 +201,6 @@ type NavDropdownProps = {
 function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const location = useLocation()
-  const searchParams = new URLSearchParams(location.search)
-  const showTestOptions = searchParams.get('test') === 'true'
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -259,7 +243,6 @@ function NavDropdown({ label, icon, children, mobile, onClick }: NavDropdownProp
         `}>
           <div className="py-1" role="menu">
             {children
-              .filter(item => item.id !== 'device-test' || showTestOptions)
               .map((item) => (
                 <Link
                   key={item.to}

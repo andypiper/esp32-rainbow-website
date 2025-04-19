@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import useDevice from '../context/useDevice';
 import FileBrowser from '../components/FileBrowser';
 import FileUploader from '../components/FileUploader';
@@ -24,35 +24,32 @@ export default function FileBrowserPage() {
   useEffect(() => {
     if (isConnected && !versionInfo && !checkedVersion) {
       setCheckedVersion(true);
-      getVersion().catch(() => {});
+      getVersion().catch(() => { });
     }
   }, [isConnected, versionInfo, getVersion, checkedVersion]);
 
   // Unified fetchFiles callback
-  const fetchFiles = useCallback(async () => {
-    if (!isConnected) return;
-    setError(null);
-    setIsLoading(true);
-    try {
-      if (activeTab === 'flash' && versionInfo?.flash.available) {
-        const files = await device.listFolder(flashPath, true);
-        setFlashFiles(files);
-      } else if (activeTab === 'sd' && versionInfo?.sd.available) {
-        const files = await device.listFolder(sdPath, false);
-        setSdFiles(files);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isConnected, versionInfo, device, activeTab, flashPath, sdPath]);
-
-  // Fetch files when path or tab changes
   useEffect(() => {
-    fetchFiles(activeTab === 'flash');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, flashPath, sdPath, isConnected, versionInfo]);
+    const fetchFiles = async () => {
+      if (!isConnected) return;
+      setError(null);
+      setIsLoading(true);
+      try {
+        if (activeTab === 'flash' && versionInfo?.flash.available) {
+          const files = await device.listFolder(flashPath, true);
+          setFlashFiles(files);
+        } else if (activeTab === 'sd' && versionInfo?.sd.available) {
+          const files = await device.listFolder(sdPath, false);
+          setSdFiles(files);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchFiles();
+  }, [isConnected, versionInfo, device, activeTab, flashPath, sdPath]);
 
   // Navigation handlers
   const handleNavigate = (path: string) => {
@@ -265,7 +262,7 @@ export default function FileBrowserPage() {
               isLoading={isLoading}
               show={uploaderOpen}
               initialFiles={uploaderFiles}
-              onClose={() => { setUploaderOpen(false); setUploaderFiles([]); fetchFiles(true); }}
+              onClose={() => { setUploaderOpen(false); setUploaderFiles([]); }}
             />
             <FileBrowser
               files={flashFiles}
@@ -288,7 +285,7 @@ export default function FileBrowserPage() {
               isLoading={isLoading}
               show={uploaderOpen}
               initialFiles={uploaderFiles}
-              onClose={() => { setUploaderOpen(false); setUploaderFiles([]); fetchFiles(false); }}
+              onClose={() => { setUploaderOpen(false); setUploaderFiles([]); }}
             />
             <FileBrowser
               files={sdFiles}
