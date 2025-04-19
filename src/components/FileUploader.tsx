@@ -123,12 +123,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLo
     });
   };
 
-  const formatFileSize = (size: number): string => {
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   const handleRemoveFile = (index: number) => {
     setFiles(files => files.filter((_, i) => i !== index));
   };
