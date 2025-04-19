@@ -230,11 +230,11 @@ class Device {
         return message.versionInfo;
     }
 
-    public async listFolder(path: string): Promise<FileInfo[]> {
+    public async listFolder(path: string, isFlash: boolean): Promise<FileInfo[]> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
-        const message = new ListFolder(path);
+        const message = new ListFolder(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -244,12 +244,12 @@ class Device {
         return message.files;
     }
 
-    public async writeFile(path: string, data: Uint8Array, onProgress?: (progress: number) => void): Promise<boolean> {
+    public async writeFile(path: string, data: Uint8Array, isFlash: boolean, onProgress?: (progress: number) => void): Promise<boolean> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
         console.log('Writing file', path, data.length, 'bytes');
-        const message = new WriteFileStart(path, data);
+        const message = new WriteFileStart(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -259,7 +259,7 @@ class Device {
         // now send the data in chunks of 16000 bytes
         for (let i = 0; i < data.length; i += 16000) {
             const chunk = data.slice(i, i + 16000);
-            const message = new WriteFileData(path, chunk);
+            const message = new WriteFileData(path, chunk, isFlash);
             await message.send(this.messageHandler);
             if (!message.success) {
                 throw new Error(message.error || 'Failed to write file data');
@@ -270,7 +270,7 @@ class Device {
         }
 
         // now send the end of the file
-        const endMessage = new WriteFileEnd(path, data);
+        const endMessage = new WriteFileEnd(path, data.length, isFlash);
         await endMessage.send(this.messageHandler);
         if (!endMessage.success) {
             throw new Error(endMessage.error || 'Failed to end writing file');
@@ -281,11 +281,11 @@ class Device {
         return true;
     }
 
-    public async readFile(path: string): Promise<Uint8Array> {
+    public async readFile(path: string, isFlash: boolean): Promise<Uint8Array> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
-        const message = new ReadFile(path);
+        const message = new ReadFile(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -295,12 +295,12 @@ class Device {
         return message.result;
     }
     
-    public async deleteFile(path: string): Promise<string> {
+    public async deleteFile(path: string, isFlash: boolean): Promise<string> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
         console.log('Deleting file', path);
-        const message = new DeleteFile(path);
+        const message = new DeleteFile(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -310,12 +310,12 @@ class Device {
         return message.result;
     }
     
-    public async makeDirectory(path: string): Promise<string> {
+    public async makeDirectory(path: string, isFlash: boolean): Promise<string> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
         console.log('Creating directory', path);
-        const message = new MakeDirectory(path);
+        const message = new MakeDirectory(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -325,12 +325,12 @@ class Device {
         return message.result;
     }
     
-    public async renameFile(sourcePath: string, destinationPath: string): Promise<string> {
+    public async renameFile(sourcePath: string, destinationPath: string, isFlash: boolean): Promise<string> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
         console.log('Renaming', sourcePath, 'to', destinationPath);
-        const message = new RenameFile(sourcePath, destinationPath);
+        const message = new RenameFile(sourcePath, destinationPath, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success) {
@@ -340,12 +340,12 @@ class Device {
         return message.result;
     }
     
-    public async getFileInfo(path: string): Promise<FileInfo> {
+    public async getFileInfo(path: string, isFlash: boolean): Promise<FileInfo> {
         if (!this.messageHandler) {
             throw new Error('Not connected');
         }
         console.log('Getting file info for', path);
-        const message = new GetFileInfo(path);
+        const message = new GetFileInfo(path, isFlash);
         await message.send(this.messageHandler);
         
         if (!message.success || message.error) {

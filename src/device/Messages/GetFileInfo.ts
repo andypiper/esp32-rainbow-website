@@ -4,13 +4,15 @@ import { FileInfo, StandardResponse } from './ResponseTypes';
 
 class GetFileInfo extends Message {
   public path: string = '';
+  public isFlash: boolean = false;
   public fileInfo: FileInfo | null = null;
   public error: string | null = null;
   public success: boolean = false;
 
-  constructor(path: string) {
+  constructor(path: string, isFlash: boolean) {
     super(MessageIds.GetFileInfoRequest, MessageIds.GetFileInfoResponse);
     this.path = path;
+    this.isFlash = isFlash;
   }
 
   public description(): string {
@@ -18,8 +20,11 @@ class GetFileInfo extends Message {
   }
 
   public encode(): Uint8Array {
-    const encodedPath = new TextEncoder().encode(this.path);
-    return new Uint8Array([...encodedPath, 0x00]);
+    const message = {
+      path: this.path,
+      isFlash: this.isFlash,
+    }
+    return new TextEncoder().encode(JSON.stringify(message)); 
   }
 
   public decode(data: Uint8Array | null): void {

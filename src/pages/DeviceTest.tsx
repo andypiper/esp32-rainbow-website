@@ -70,7 +70,7 @@ function DeviceTest() {
     try {
       setError(null);
       setIsLoading(true);
-      const files = await device.listFolder(path);
+      const files = await device.listFolder(path, true);
       setFileList(files);
       setFolderPath(path);
       console.log('Files in', path + ':', files);
@@ -95,7 +95,7 @@ function DeviceTest() {
     try {
       setError(null);
       setIsLoading(true);
-      const result = await device.deleteFile(path);
+      const result = await device.deleteFile(path, true);
       console.log('Delete file result:', result);
       
       if (result !== 'OK') {
@@ -119,7 +119,7 @@ function DeviceTest() {
     try {
       setError(null);
       setIsLoading(true);
-      const result = await device.renameFile(oldPath, newPath);
+      const result = await device.renameFile(oldPath, newPath, true);
       console.log('Rename file result:', result);
       
       if (result !== 'OK') {
@@ -143,7 +143,7 @@ function DeviceTest() {
     try {
       setError(null);
       setIsLoading(true);
-      const result = await device.makeDirectory(path);
+      const result = await device.makeDirectory(path, true);
       console.log('Create directory result:', result);
       
       if (result !== 'OK') {
@@ -167,7 +167,7 @@ function DeviceTest() {
     try {
       setError(null);
       setIsLoading(true);
-      const fileInfo = await device.getFileInfo(path);
+      const fileInfo = await device.getFileInfo(path, true);
       console.log('File info:', fileInfo);
       return fileInfo;
     } catch (err) {
@@ -188,7 +188,7 @@ function DeviceTest() {
       setIsLoading(true);
       
       // Check if it's a text file that can be edited
-      const fileInfo = await device.getFileInfo(path);
+      const fileInfo = await device.getFileInfo(path, true);
       
       if (fileInfo.isDirectory) {
         // If it's a directory, navigate into it
@@ -215,7 +215,7 @@ function DeviceTest() {
       setIsLoading(true);
       
       // Read the file data using the existing ReadFile message
-      const fileData = await device.readFile(path);
+      const fileData = await device.readFile(path, true);
       console.log(`Downloaded file ${path}, size: ${fileData.length} bytes`);
       
       return fileData;
@@ -239,7 +239,7 @@ function DeviceTest() {
       setIsLoading(true);
       
       // Write the file using the existing WriteFile message
-      const result = await device.writeFile(path, data);
+      const result = await device.writeFile(path, data, true);
       console.log(`Uploaded file ${path}, size: ${data.length} bytes, result: ${result}`);
       
       // Refresh the file list to show the new file

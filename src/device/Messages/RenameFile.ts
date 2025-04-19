@@ -5,14 +5,16 @@ import { StandardResponse } from './ResponseTypes';
 class RenameFile extends Message {
   public sourcePath: string = '';
   public destinationPath: string = '';
+  public isFlash: boolean = false;
   public result: string = '';
   public success: boolean = false;
   public error: string | null = null;
 
-  constructor(sourcePath: string, destinationPath: string) {
+  constructor(sourcePath: string, destinationPath: string, isFlash: boolean) {
     super(MessageIds.RenameFileRequest, MessageIds.RenameFileResponse);
     this.sourcePath = sourcePath;
     this.destinationPath = destinationPath;
+    this.isFlash = isFlash;
   }
 
   public description(): string {
@@ -20,17 +22,12 @@ class RenameFile extends Message {
   }
 
   public encode(): Uint8Array {
-    const sourceEncoder = new TextEncoder();
-    const destEncoder = new TextEncoder();
-    
-    const encodedSource = sourceEncoder.encode(this.sourcePath);
-    const encodedDest = destEncoder.encode(this.destinationPath);
-    
-    // Format: [sourcePath]\0[destinationPath]\0
-    return new Uint8Array([
-      ...encodedSource, 0x00,
-      ...encodedDest, 0x00
-    ]);
+    const message = {
+      sourcePath: this.sourcePath,
+      destinationPath: this.destinationPath,
+      isFlash: this.isFlash,
+    }
+    return new TextEncoder().encode(JSON.stringify(message)); 
   }
 
   public decode(data: Uint8Array | null): void {

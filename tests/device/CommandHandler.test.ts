@@ -1,4 +1,4 @@
-import { Command, CommandHandler, Transport } from '../../src/device/CommandHandler';
+import { Message, MessageHandler, Transport } from '../../src/device/MessageHandler';
 
 // Constants defined same as in CommandHandler
 const FRAME_BYTE = 0x7E;
@@ -53,11 +53,11 @@ class MockTransport implements Transport {
 }
 
 // Helper mock command
-class MockCommand extends Command {
+class MockCommand extends Message {
   public receivedData: Uint8Array | null = null;
   
-  constructor(commandType: number) {
-    super(commandType);
+  constructor(commandType: number, responseType: number) {
+    super(commandType, responseType);
   }
   
   public override encode(): Uint8Array {
@@ -71,11 +71,11 @@ class MockCommand extends Command {
 
 describe('CommandHandler', () => {
   let transport: MockTransport;
-  let commandHandler: CommandHandler;
+  let commandHandler: MessageHandler;
   
   beforeEach(() => {
     transport = new MockTransport();
-    commandHandler = new CommandHandler(transport);
+    commandHandler = new MessageHandler(transport);
     jest.useFakeTimers();
   });
   
@@ -179,29 +179,36 @@ describe('CommandHandler', () => {
   describe('Command class', () => {
     it('should properly encode, send, and decode data', async () => {
       const commandType = 0x42;
-      const mockCommand = new MockCommand(commandType);
+      const responseType = 0x43;
+      const mockCommand = new MockCommand(commandType, responseType);
       
-      // Mock the waitForPacket method to return a successful response
+      // Mock both waitForPacket and sendCommand methods
       const originalWaitForPacket = commandHandler.waitForPacket;
+      const originalSendCommand = commandHandler.sendCommand;
+      
       commandHandler.waitForPacket = jest.fn().mockImplementation((type) => {
-        expect(type).toBe(commandType);
+        expect(type).toBe(responseType);
         return Promise.resolve(new Uint8Array([10, 20, 30, 40]));
       });
       
-      // Send the command
-      const result = await mockCommand.send(commandHandler);
+      commandHandler.sendCommand = jest.fn().mockImplementation(async (type, data) => {
+        expect(type).toBe(commandType);
+        expect(data).toEqual(new Uint8Array([1, 2, 3, 4]));
+      });
       
-      // Verify the result is correct
-      expect(result).toEqual(new Uint8Array([10, 20, 30, 40]));
+      // Send the command
+      await mockCommand.send(commandHandler);
       
       // Verify the data was correctly decoded into the command
       expect(mockCommand.receivedData).toEqual(new Uint8Array([10, 20, 30, 40]));
       
-      // Verify the sendCommand was called with the right parameters
-      expect(commandHandler.waitForPacket).toHaveBeenCalledWith(commandType);
+      // Verify both methods were called with the right parameters
+      expect(commandHandler.sendCommand).toHaveBeenCalledWith(commandType, new Uint8Array([1, 2, 3, 4]));
+      expect(commandHandler.waitForPacket).toHaveBeenCalledWith(responseType);
       
-      // Restore original method
+      // Restore original methods
       commandHandler.waitForPacket = originalWaitForPacket;
+      commandHandler.sendCommand = originalSendCommand;
     });
   });
 }); 

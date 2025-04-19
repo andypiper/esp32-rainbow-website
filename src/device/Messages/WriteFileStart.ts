@@ -4,31 +4,28 @@ import { StandardResponse } from './ResponseTypes';
 
 class WriteFileStart extends Message {
   public path: string = '';
-  public data: Uint8Array = new Uint8Array();
+  public isFlash: boolean = false;
   public result: string = '';
   public success: boolean = false;
   public error: string | null = null;
 
-  constructor(path: string, data: Uint8Array) {
+  constructor(path: string, isFlash: boolean) {
     super(MessageIds.WriteFileStartRequest, MessageIds.WriteFileStartResponse);
     this.path = path;
-    this.data = data;
+    this.isFlash = isFlash;
   }
 
   public description(): string {
-    return `WriteFileStart: ${this.path} - ${this.data.length} bytes`;
+    return `WriteFileStart: ${this.path}`;
   }
 
   // No data - so default to superclass which is an empty array
   public encode(): Uint8Array {
-    const encodedPath = new TextEncoder().encode(this.path);
-    return new Uint8Array([
-      ...encodedPath, 0x00,
-      this.data.length & 0xff,
-      (this.data.length >> 8) & 0xff,
-      (this.data.length >> 16) & 0xff,
-      (this.data.length >> 24) & 0xff,
-    ]);
+    const message = {
+      path: this.path,
+      isFlash: this.isFlash,
+    } 
+    return new TextEncoder().encode(JSON.stringify(message));
   }
 
   public decode(data: Uint8Array | null): void {

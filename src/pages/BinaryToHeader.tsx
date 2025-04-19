@@ -24,7 +24,7 @@ export default function BinaryToHeader() {
     const headerFile = `#ifndef __${safeName}_h__\n#define __${safeName}_h__\n#include <cstdint>\n#include <cstddef>\n\nextern const uint8_t ${safeName}[];\nextern const size_t ${safeName}_len;\n#endif // __${safeName}_h__`
 
     // Generate CPP file
-    let cppFile = `#include \"${safeName}.h\"\n\nextern const size_t ${safeName}_len = ${data.length};\n\nextern const uint8_t ${safeName}[] = {`
+    let cppFile = `#include "${safeName}.h"\n\nextern const size_t ${safeName}_len = ${data.length};\n\nextern const uint8_t ${safeName}[] = {`
 
     // Format the binary data in rows of 12 bytes
     for (let i = 0; i < data.length; i++) {

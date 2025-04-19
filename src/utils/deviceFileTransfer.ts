@@ -188,7 +188,7 @@ export const useSendFileToDevice = () => {
       setTransferProgressPercentage(0);
       // Write file to device
       console.log('Writing file to device:', "|" + fileData.name + "|");
-      await device.writeFile("/" + fileData.name, fileData.data, (progress: number) => {
+      await device.writeFile("/" + fileData.name, fileData.data, true, (progress: number) => {
         setTransferProgressPercentage(progress);
       });
       setTransferMessage('File successfully sent to device');
