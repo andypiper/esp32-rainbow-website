@@ -60,7 +60,7 @@ class MessageHandler {
   }
 
   private processExpectingFrameByte(data: number): State {
-    this.receivedCrc = this.finalizeCRC32(this.receivedCrc);
+    this.calculatedCrc = this.finalizeCRC32(this.calculatedCrc);
     const isValid = this.receivedCrcLength === 4 && this.calculatedCrc === this.receivedCrc && data === FRAME_BYTE;
     
     // Process the promise for this command type if it exists
@@ -86,7 +86,7 @@ class MessageHandler {
     this.lengthByteCount = 0;
     this.receivedCrc = 0;
     this.receivedCrcLength = 0;
-    this.calculatedCrc = 0;
+    this.calculatedCrc = 0xffffffff;
     this.dataBuffer = new Uint8Array();
     this.bufferPosition = 0;
     this.totalRead = 0;
