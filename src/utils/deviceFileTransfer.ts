@@ -2,6 +2,7 @@ import { useState } from 'react';
 import useDevice from '../context/useDevice';
 import { ArchiveFile } from './archiveHelpers';
 import { loadWasmModule } from './tapToZ80Converter';
+import { STORAGE_TYPE } from '../device/Device';
 
 // Cache for the WASM module
 let wasmModuleCache: {convertTapeToZ80: (name: string, data: Uint8Array, is128k: boolean) => Uint8Array | null} | null = null;
@@ -159,7 +160,7 @@ export const useSendFileToDevice = () => {
   const [transferMessage, setTransferMessage] = useState('');
   const [transferProgressPercentage, setTransferProgressPercentage] = useState(0);
   
-  const sendFile = async (fileUrl: string, machineType: string, isFlash: boolean): Promise<string> => {
+  const sendFile = async (fileUrl: string, machineType: string, storageType: STORAGE_TYPE): Promise<string> => {
     // Prevent multiple simultaneous transfers
     if (transferInProgress) {
       throw new Error('A file transfer is already in progress. Please wait for it to complete.');
@@ -188,7 +189,7 @@ export const useSendFileToDevice = () => {
       setTransferProgressPercentage(0);
       // Write file to device
       console.log('Writing file to device:', "|" + fileData.name + "|");
-      await device.writeFile("/" + fileData.name, fileData.data, isFlash, (progress: number) => {
+      await device.writeFile("/" + fileData.name, fileData.data, storageType, (progress: number) => {
         setTransferProgressPercentage(progress);
       });
       setTransferMessage('File successfully sent to device');

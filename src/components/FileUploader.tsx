@@ -134,81 +134,62 @@ const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLo
       className="my-3"
       style={{ minHeight: 40 }}
     >
-      {!showUploader ? (
-        <button
-          onClick={() => setShowUploader(true)}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-          disabled={isLoading}
-        >
-          Upload File(s)
-        </button>
-      ) : (
-        <div className="p-4 bg-gray-800 rounded">
-          <h3 className="text-lg font-medium mb-3">Upload File(s) to {currentPath}</h3>
+      {files.length > 0 && (
+      <div className="p-4 bg-gray-800 rounded">
+        <h3 className="text-lg font-medium mb-3">Upload File(s) to {currentPath}</h3>
           <div className="mb-3">
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="block w-full text-sm bg-gray-700 text-gray-200 rounded py-2 px-3 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-              disabled={isUploading}
-              multiple
-            />
-          </div>
-          {files.length > 0 && (
-            <div className="mb-3">
-              {files.map((file, idx) => (
-                <div key={idx} className="mb-1 p-2 bg-gray-700 rounded flex items-center justify-between">
-                  <div>
-                    <p className="text-sm">{file.name}</p>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveFile(idx)}
-                    className="text-gray-400 hover:text-white"
-                    disabled={isUploading}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+            {files.map((file, idx) => (
+              <div key={idx} className="mb-1 p-2 bg-gray-700 rounded flex items-center justify-between">
+                <div>
+                  <p className="text-sm">{file.name}</p>
                 </div>
-              ))}
-            </div>
-          )}
-          {isUploading && files.length > 0 && (
-            <div className="mb-3">
-              <div className="w-full bg-gray-700 rounded-full h-2.5">
-                <div 
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-200" 
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
+                <button
+                  onClick={() => handleRemoveFile(idx)}
+                  className="text-gray-400 hover:text-white"
+                  disabled={isUploading}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                Uploading {files[currentFileIndex]?.name} ({currentFileIndex + 1} of {files.length}): {Math.round(uploadProgress)}%
-              </p>
-            </div>
-          )}
-          {error && (
-            <div className="mb-3 p-2 bg-red-900 rounded text-white text-sm">
-              {error}
-            </div>
-          )}
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={handleClose}
-              className="px-3 py-1 text-gray-300 hover:text-white"
-              disabled={isUploading}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpload}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"
-              disabled={files.length === 0 || isUploading}
-            >
-              Upload
-            </button>
+            ))}
           </div>
+        {isUploading && files.length > 0 && (
+          <div className="mb-3">
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-200" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Uploading {files[currentFileIndex]?.name} ({currentFileIndex + 1} of {files.length}): {Math.round(uploadProgress)}%
+            </p>
+          </div>
+        )}
+        {error && (
+          <div className="mb-3 p-2 bg-red-900 rounded text-white text-sm">
+            {error}
+          </div>
+        )}
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={handleClose}
+            className="px-3 py-1 text-gray-300 hover:text-white"
+            disabled={isUploading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpload}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"
+            disabled={files.length === 0 || isUploading}
+          >
+            Upload
+          </button>
         </div>
+      </div>
       )}
     </div>
   );

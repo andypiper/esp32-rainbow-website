@@ -3,6 +3,7 @@ import { Game } from '../../types/game';
 import { ensureBaseUrl, getProxyUrl } from '../../utils/urls';
 import { useSendFileToDevice } from '../../utils/deviceFileTransfer';
 import useDevice from '../../context/useDevice';
+import { STORAGE_TYPE } from '../../device/Device';
 interface Props {
   game: Game;
   formatFileSize: (bytes: number) => string;
@@ -70,7 +71,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
   ].filter(tab => tab.count > 0);
 
   // Updated function to handle sending file to device
-  const handleSendToDevice = async (file: Game['f'][0], isFlash: boolean) => {
+  const handleSendToDevice = async (file: Game['f'][0], storageType: STORAGE_TYPE) => {
     if (!isSerialAvailable) {
       alert('Web Serial is not supported in this browser. Please use Chrome, Edge, or another compatible browser.');
       return;
@@ -81,7 +82,7 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
     setTransferFileName(fileName);
     setPromptFile(null); // Close the prompt
     try {
-      const result = await sendFile(fileUrl, machineType, isFlash);
+      const result = await sendFile(fileUrl, machineType, storageType);
       setStatusMessage({ text: result, type: 'success' });
     } catch (error) {
       setStatusMessage({ 
@@ -268,13 +269,13 @@ export default function FilesList({ game, formatFileSize, getFilenameFromUrl }: 
             <div className="flex gap-4">
               <button
                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-500 transition-colors"
-                onClick={() => handleSendToDevice(promptFile, true)}
+                onClick={() => handleSendToDevice(promptFile, 'flash')}
               >
                 Send to Flash
               </button>
               <button
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors"
-                onClick={() => handleSendToDevice(promptFile, false)}
+                onClick={() => handleSendToDevice(promptFile, 'sd')}
               >
                 Send to SD Card
               </button>
