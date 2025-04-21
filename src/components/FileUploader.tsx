@@ -8,24 +8,17 @@ interface FileToUpload {
 interface FileUploaderProps {
   currentPath: string;
   onUpload: (files: FileToUpload[], onProgress?: (progress: number) => void) => Promise<void>;
-  isLoading?: boolean;
-  show?: boolean;
   initialFiles?: File[];
   onClose?: () => void;
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLoading = false, show, initialFiles, onClose }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, initialFiles, onClose }) => {
   const [files, setFiles] = useState<File[]>(initialFiles || []);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [showUploader, setShowUploader] = useState(!!show);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
 
-  // Sync show prop with internal state
-  useEffect(() => {
-    setShowUploader(!!show);
-  }, [show]);
 
   // Sync initialFiles prop with internal state
   useEffect(() => {
@@ -36,16 +29,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLo
 
   // Handle close
   const handleClose = () => {
-    setShowUploader(false);
     setFiles([]);
     setError(null);
     if (onClose) onClose();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    setFiles(selectedFiles);
-    setError(null);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -53,7 +39,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLo
     e.stopPropagation();
     const droppedFiles = Array.from(e.dataTransfer.files || []);
     setFiles(droppedFiles);
-    setShowUploader(true);
     setError(null);
   };
 
@@ -97,7 +82,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ currentPath, onUpload, isLo
       setTimeout(() => {
         setUploadProgress(0);
         setFiles([]);
-        setShowUploader(false);
         setCurrentFileIndex(0);
       }, 1000);
     } catch (err) {

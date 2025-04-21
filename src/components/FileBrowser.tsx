@@ -22,7 +22,6 @@ const FileBrowser = ({
   onDelete,
   onRename,
   onCreateDirectory,
-  onGetFileInfo,
   onSelectFile,
   onDownloadFile
 }: FileBrowserProps) => {
@@ -43,25 +42,6 @@ const FileBrowser = ({
   const [newFileName, setNewFileName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Navigate to parent directory
-  const navigateToParent = () => {
-    // Remove trailing slash if it exists
-    const pathWithoutTrailingSlash = currentPath.endsWith('/') && currentPath !== '/' 
-      ? currentPath.slice(0, -1) 
-      : currentPath;
-    
-    // Find the last slash in the path
-    const lastSlashIndex = pathWithoutTrailingSlash.lastIndexOf('/');
-    
-    // If there's no slash or it's the root, navigate to root
-    if (lastSlashIndex <= 0) {
-      onNavigate('/');
-    } else {
-      // Navigate to the parent directory
-      onNavigate(pathWithoutTrailingSlash.substring(0, lastSlashIndex + 1));
-    }
-  };
 
   // Handle file selection
   const handleSelectFile = (file: FileInfo) => {
@@ -160,12 +140,6 @@ const FileBrowser = ({
     }
   };
 
-  // Format file size
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
   return (
     <div className="mt-4">

@@ -33,32 +33,29 @@ class SerialTransport implements Transport {
             return new Uint8Array();
         }
         // read a new chunk of data
-        console.log('Reading');
         const result = await this.reader.read();
         if (result.done) {
-            console.log('Read stream done');
             return new Uint8Array();
         }
-        console.log(`Reading ${result.value.length} bytes`);
-        // dump out the data as hex
-        console.log("DEVICE:", Array.from(result.value).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        // dump out the data as ascii - replace non-printable characters with '.'
-        console.log("DEVICE:", Array.from(result.value).map(b => b < 0x0a || b > 126 ? '.' : String.fromCharCode(b)).join(''));
+        // console.log(`Reading ${result.value.length} bytes`);
+        // // dump out the data as hex
+        // console.log("DEVICE:", Array.from(result.value).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        // // dump out the data as ascii - replace non-printable characters with '.'
+        // console.log("DEVICE:", Array.from(result.value).map(b => b < 0x0a || b > 126 ? '.' : String.fromCharCode(b)).join(''));
         return result.value;
     }
 
     public async write(data: Uint8Array): Promise<void> {
         if (!this.isConnected) {
-            console.log('Write:Not connected');
+            console.log('Write: Not connected');
             return;
         }
-        console.log('Writing', data.length, 'bytes');
-        // dump out the data as hex
-        console.log("CLIENT:", Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        // dump out the data as ascii - replace non-printable characters with '.'
-        console.log("CLIENT:", Array.from(data).map(b => b < 0x0a || b > 126 ? '.' : String.fromCharCode(b)).join(''));
+        // console.log('Writing', data.length, 'bytes');
+        // // dump out the data as hex
+        // console.log("CLIENT:", Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        // // dump out the data as ascii - replace non-printable characters with '.'
+        // console.log("CLIENT:", Array.from(data).map(b => b < 0x0a || b > 126 ? '.' : String.fromCharCode(b)).join(''));
         await this.writer.write(data);
-        console.log('Wrote', data.length, 'bytes');
     }
 
     public async close(): Promise<void> {

@@ -35,7 +35,6 @@ export default function StorageFileBrowser({ storageType, active }: StorageFileB
   const [currentPath, setCurrentPath] = useState(ROOT_PATH);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploaderOpen, setUploaderOpen] = useState(false);
   const [uploaderFiles, setUploaderFiles] = useState<File[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
   
@@ -286,7 +285,6 @@ export default function StorageFileBrowser({ storageType, active }: StorageFileB
       await getVersion();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    } finally {
     }
   };
 
@@ -298,7 +296,6 @@ export default function StorageFileBrowser({ storageType, active }: StorageFileB
     const droppedFiles = Array.from(e.dataTransfer.files || []);
     if (droppedFiles.length > 0) {
       setUploaderFiles(droppedFiles);
-      setUploaderOpen(true);
     }
   };
 
@@ -430,10 +427,8 @@ export default function StorageFileBrowser({ storageType, active }: StorageFileB
               <FileUploader
                 currentPath={currentPath}
                 onUpload={handleUpload}
-                isLoading={isLoading}
-                show={uploaderOpen}
                 initialFiles={uploaderFiles}
-                onClose={() => { setUploaderOpen(false); setUploaderFiles([]); }}
+                onClose={() => { setUploaderFiles([]); }}
               />
             </div>
           </div>
