@@ -14,6 +14,7 @@ import { initFacebookPixel } from './utils/FacebookPixel'
 import ScrToPng from './pages/ScrToPng'
 import TapToWav from './pages/TapToWav'
 import TapToZ80 from './pages/TapToZ80'
+import VideoToAvi from './pages/VideoToAvi'
 import BinaryToHeader from './pages/BinaryToHeader'
 import FileBrowserPage from './pages/FileBrowser'
 
@@ -53,6 +54,7 @@ function Layout() {
           <Route path="/tools/scr-to-png" element={<ScrToPng />} />
           <Route path="/tools/tap-to-wav" element={<TapToWav />} />
           <Route path="/tools/tap-to-z80" element={<TapToZ80 />} />
+          <Route path="/tools/video-to-avi" element={<VideoToAvi />} />
           <Route path="/tools/binary-to-header" element={<BinaryToHeader />} />
           <Route path="/file-browser" element={<FileBrowserPage />} />
           <Route path="*" element={

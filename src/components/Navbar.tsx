@@ -169,6 +169,19 @@ const navigationItems: NavItem[] = [
         )
       },
       {
+        to: '/tools/video-to-avi',
+        label: 'Video to AVI',
+        id: 'video-to-avi',
+        icon: (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m0-4v4m0-4L9 6m6 4L9 14M9 6l-4.553-2.276A1 1 0 003 4.618v6.764a1 1 0 001.447.894L9 10m0-4v4"
+          />
+        )
+      },
+      {
         to: '/tools/binary-to-header',
         label: 'Binary to C/C++',
         id: 'binary-to-header',
