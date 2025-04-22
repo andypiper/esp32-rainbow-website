@@ -12,7 +12,9 @@ function VideoToAvi() {
     try {
       const ffmpeg = ffmpegRef.current;
       ffmpeg.on('log', ({ message }) => {
-          messageRef.current.innerHTML = message;
+          if (messageRef.current) {
+            messageRef.current.innerHTML = message;
+          }
           console.log(message);
       });
       // toBlobURL is used to bypass CORS issue, urls with the same
@@ -34,8 +36,10 @@ function VideoToAvi() {
       await ffmpeg.writeFile('input.webm', await fetchFile('https://raw.githubusercontent.com/ffmpegwasm/testdata/master/Big_Buck_Bunny_180_10s.webm'));
       await ffmpeg.exec(['-i', 'input.webm', 'output.mp4']);
       const data = await ffmpeg.readFile('output.mp4');
-      videoRef.current.src =
-          URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+      if (videoRef.current) {
+        videoRef.current.src =
+            URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+      }
   }
 
   return (loaded
