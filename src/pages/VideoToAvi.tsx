@@ -5,15 +5,15 @@ import { useState, useRef } from 'react';
 function VideoToAvi() {
   const [loaded, setLoaded] = useState(false);
   const ffmpegRef = useRef(new FFmpeg());
-  const videoRef = useRef(null);
-  const messageRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const messageRef = useRef<HTMLParagraphElement>(null);
 
   const load = async () => {
     try {
       const ffmpeg = ffmpegRef.current;
       ffmpeg.on('log', ({ message }) => {
           if (messageRef.current) {
-            messageRef.current.innerHTML = message;
+            messageRef.current.textContent = message;
           }
           console.log(message);
       });
@@ -38,7 +38,7 @@ function VideoToAvi() {
       const data = await ffmpeg.readFile('output.mp4');
       if (videoRef.current) {
         videoRef.current.src =
-            URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+            URL.createObjectURL(new Blob([data instanceof Uint8Array ? data : new Uint8Array(0)], {type: 'video/mp4'}));
       }
   }
 
