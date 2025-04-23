@@ -21,8 +21,8 @@ function VideoToAvi() {
       // domain can be used directly.
       console.log("loading ffmpeg");
       await ffmpeg.load({
-          coreURL: await toBlobURL(`https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm//ffmpeg-core.js`, 'text/javascript'),
-          wasmURL: await toBlobURL(`https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm//ffmpeg-core.wasm`, 'application/wasm'),
+          coreURL: await toBlobURL(`https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm`, 'application/wasm'),
       });
       console.log("loaded ffmpeg");
       setLoaded(true);
