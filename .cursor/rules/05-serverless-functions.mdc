@@ -1,7 +1,7 @@
 ---
-description: 
-globs: 
-alwaysApply: auto
+description: Use this rule when modifying the proxy service that is used to add CORS headers to external resources.
+globs: functions/*
+alwaysApply: fale
 ---
 # Serverless Functions
 
