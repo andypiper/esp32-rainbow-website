@@ -1,7 +1,7 @@
 ---
 description:
 globs:
-alwaysApply: false
+alwaysApply: auto
 ---
 # ESP32 Device Communication
 
