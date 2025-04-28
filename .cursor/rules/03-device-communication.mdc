@@ -1,0 +1,25 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# ESP32 Device Communication
+
+The application communicates with ESP32 devices through a structured message protocol:
+
+## Core Components
+
+- [src/device/Device.ts](mdc:src/device/Device.ts) - Main device interface for controlling the ESP32
+- [src/device/MessageHandler.ts](mdc:src/device/MessageHandler.ts) - Handles message parsing and formatting
+
+## Message Types
+
+The [src/device/Messages/](mdc:src/device/Messages/) directory contains message definitions:
+
+- [src/device/Messages/MessageIds.ts](mdc:src/device/Messages/MessageIds.ts) - Message type identifiers
+- [src/device/Messages/ResponseTypes.ts](mdc:src/device/Messages/ResponseTypes.ts) - Response type definitions
+
+Message implementations include:
+- File operations (read, write, delete, rename)
+- Directory operations (list, create)
+- Device information (version)

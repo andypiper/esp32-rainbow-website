@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# ESP32 Rainbow Website
+
+This web application describes the ESP32 Rainbow project - a ZX Spectrum emulator based around the ESP32-S3 module. The website consists of a search engine for ZX Spectrum games that can be sent to the device along with various utility pages - a firmware update page and a file browser.
+
+## Project Structure
+
+- [src/main.tsx](mdc:src/main.tsx) - Application entry point
+- [src/App.tsx](mdc:src/App.tsx) - Main application component
+- [src/components/](mdc:src/components) - Reusable UI components
+- [src/pages/](mdc:src/pages) - Page components for different routes
+- [src/device/](mdc:src/device) - Device communication logic
+- [src/utils/](mdc:src/utils) - Utility functions
+- [src/context/](mdc:src/context) - React context providers
+- [functions/](mdc:functions) - Cloudflare Workers serverless functions

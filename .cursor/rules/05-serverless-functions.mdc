@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Serverless Functions
+
+The project uses Cloudflare Workers for serverless functions:
+
+## Functions
+
+- [functions/_worker.ts](mdc:functions/_worker.ts) - Main worker entry point
+- [functions/proxy.ts](mdc:functions/proxy.ts) - Proxy service for external resources
+
+## Proxy Service
+
+The proxy service in [functions/proxy.ts](mdc:functions/proxy.ts) handles:
+- Proxying requests to allowed external domains (spectrumcomputing.co.uk and GitHub releases)
+- Adding CORS headers to responses
+- Caching responses for improved performance
+- Security validation of target URLs
+
+## Configuration
+
+Cloudflare Workers configuration is defined in [wrangler.toml](mdc:wrangler.toml).

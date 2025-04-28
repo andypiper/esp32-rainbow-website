@@ -1,0 +1,28 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# UI Components and Pages
+
+## Core Components
+
+Key reusable components in [src/components/](mdc:src/components):
+- [src/components/Navbar.tsx](mdc:src/components/Navbar.tsx) - Navigation bar component
+- [src/components/DeviceStatus.tsx](mdc:src/components/DeviceStatus.tsx) - ESP32 device connection status
+- [src/components/FileBrowser.tsx](mdc:src/components/FileBrowser.tsx) - Component for browsing files
+- [src/components/StorageFileBrowser.tsx](mdc:src/components/StorageFileBrowser.tsx) - Component for browsing device storage
+- [src/components/FileUploader.tsx](mdc:src/components/FileUploader.tsx) - File upload component
+- [src/components/ZXSpectrum.tsx](mdc:src/components/ZXSpectrum.tsx) - ZX Spectrum emulator component
+
+## Pages
+
+The application routes in [src/pages/](mdc:src/pages):
+- [src/pages/Home.tsx](mdc:src/pages/Home.tsx) - Main landing page
+- [src/pages/FileBrowser.tsx](mdc:src/pages/FileBrowser.tsx) - File browser page
+- [src/pages/Games.tsx](mdc:src/pages/Games.tsx) - Games listing page
+- [src/pages/GameDetail.tsx](mdc:src/pages/GameDetail.tsx) - Game details page
+- [src/pages/Emulator.tsx](mdc:src/pages/Emulator.tsx) - Emulator page
+- [src/pages/Firmware.tsx](mdc:src/pages/Firmware.tsx) - Firmware management
+- [src/pages/Docs.tsx](mdc:src/pages/Docs.tsx) - Documentation page
+- Utility pages for file conversions (Tap, Scr, Binary, etc.)
