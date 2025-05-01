@@ -15,10 +15,23 @@ import ce from '../assets/docs/ce.png';
 import ukca from '../assets/docs/ukca.png';
 import { Helmet } from 'react-helmet-async';
 
-function Section({ title, children }: { title?: string, children: React.ReactNode }) {
+function Section({ title, children, id }: { title?: string, children: React.ReactNode, id?: string }) {
   return (
-    <div className="bg-gray-800 p-8 mb-12 rounded-lg border border-gray-700 text-left text-gray-300">
-      {title && <h2 className="text-3xl font-bold text-gray-100 mb-4">{title}</h2>}
+    <div id={id} className="bg-gray-800 p-8 mb-12 rounded-lg border border-gray-700 text-left text-gray-300">
+      {title && (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-100">{title}</h2>
+          {id && (
+            <a 
+              href="#" 
+              className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center"
+              title="Back to Top"
+            >
+              ↑ Back to Top
+            </a>
+          )}
+        </div>
+      )}
       {children}
     </div>
   );
@@ -35,6 +48,27 @@ export default function QuickStart() {
         <h1 className="text-4xl font-extrabold text-gray-100 mb-8">
           Quick Start Guide - ESP32 Rainbow
         </h1>
+
+        <Section title="Contents">
+          <nav className="text-left">
+            <ul className="space-y-2">
+              <li><a href="#overview" className="text-indigo-400 hover:text-indigo-300">📦 What's in the box?</a></li>
+              <li><a href="#system-overview" className="text-indigo-400 hover:text-indigo-300">📺 System Overview</a></li>
+              <li><a href="#power" className="text-indigo-400 hover:text-indigo-300">🔌 Powering the device</a></li>
+              <li><a href="#games" className="text-indigo-400 hover:text-indigo-300">🎮 Loading Games</a></li>
+              <li><a href="#usage" className="text-indigo-400 hover:text-indigo-300">🕹 Using the Device</a></li>
+              <li><a href="#firmware" className="text-indigo-400 hover:text-indigo-300">💿 Upgrading the Firmware</a></li>
+              <li><a href="#sd-card" className="text-indigo-400 hover:text-indigo-300">💾 Optional SD Card</a></li>
+              <li><a href="#troubleshooting" className="text-indigo-400 hover:text-indigo-300">🤨 Troubleshooting</a></li>
+              <li><a href="#software" className="text-indigo-400 hover:text-indigo-300">🤖 Software and License</a></li>
+              <li><a href="#disposal" className="text-indigo-400 hover:text-indigo-300">♻️ Disposal and Recycling</a></li>
+              <li><a href="#compliance" className="text-indigo-400 hover:text-indigo-300">✅ CE/UKCA Compliance</a></li>
+              <li><a href="#safety" className="text-indigo-400 hover:text-indigo-300">⚠️ Safety Information</a></li>
+              <li><a href="#warranty" className="text-indigo-400 hover:text-indigo-300">🛠️ Warranty & Returns</a></li>
+            </ul>
+          </nav>
+        </Section>
+
         <Section>
           <div className="flex flex-row justify-between">
             <div>
@@ -51,13 +85,13 @@ export default function QuickStart() {
             </a>
           </div>
         </Section>
-        <Section title="📦 What's in the box?">
+        <Section title="📦 What's in the box?" id="overview">
           <ul className="list-disc list-inside text-gray-300 space-y-2">
             <li>ESP32 Rainbow with TFT display and built-in speaker</li>
             <li>Printed manual</li>
           </ul>
         </Section>
-        <Section title="📺 System Overview">
+        <Section title="📺 System Overview" id="system-overview">
           <p className="mb-4">
             The ESP32 Rainbow is powered by an ESP32S3 microcontroller with 8MB of flash memory and 8MB of PSRAM.
           </p>
@@ -69,7 +103,7 @@ export default function QuickStart() {
             Additional storage can be provided by an optional microSD card (not included).
           </p>
         </Section>
-        <Section title="🔌 Powering the device">
+        <Section title="🔌 Powering the device" id="power">
           <div className="flex flex-row gap-2">
             <div>
               <p className="mb-4">
@@ -94,7 +128,7 @@ export default function QuickStart() {
             </div>
           </div>
         </Section>
-        <Section title="🎮 Loading Games">
+        <Section title="🎮 Loading Games" id="games">
           <p className="mb-4">
             You can load and play thousands of classic games on the ESP32 Rainbow.
           </p>
@@ -112,7 +146,7 @@ export default function QuickStart() {
           </p>
           <img src={loadingGames} alt="Loading Games" className="max-w-full h-auto rounded-lg" />
         </Section>
-        <Section title="🕹 Using the Device">
+        <Section title="🕹 Using the Device" id="usage">
           <p className="mb-4">
             The main menu is controlled by the Spectrum cursor keys – "5"(⬅), "6"(⬇) and "7"(⬆). "6" and "7" are used to move up and down, "ENTER" to pick the menu option, and "5" to go back up the menu hierarchy.
           </p>
@@ -135,7 +169,7 @@ export default function QuickStart() {
           </p>
           <img src={timeTravel} alt="Time Travel Mode" className="max-w-full mt-4 md:max-w-[300px] h-auto rounded-lg" />
         </Section>
-        <Section title="💿 Upgrading the Firmware">
+        <Section title="💿 Upgrading the Firmware" id="firmware">
           <p className="mb-4">
             To upgrade the firmware, you can use the <a href="/firmware" className="text-indigo-400 hover:text-indigo-300">firmware page</a>. This will allow you to flash new firmware to the device.
           </p>
@@ -146,7 +180,7 @@ export default function QuickStart() {
             <img src={firmwareUpgrade} alt="Firmware Upgrade" className="max-w-full mt-4 h-auto rounded-lg" />
           </a>
         </Section>
-        <Section title="💾 Optional SD Card">
+        <Section title="💾 Optional SD Card" id="sd-card">
           <p className="mb-4">
             The ESP32 Rainbow can use an optional microSD card for storage. The microSD card should be formatted as FAT32.
           </p>
@@ -164,7 +198,7 @@ export default function QuickStart() {
             These speed classes are not required for the ESP32 Rainbow, but they are a good indication of the quality of the card.
           </p>
         </Section>
-        <Section title="🤨 Troubleshooting">
+        <Section title="🤨 Troubleshooting" id="troubleshooting">
           <h4 className="text-lg font-semibold text-gray-100 mb-4">No display?</h4>
           <p className="mb-4">
             Check the power indicator LEDs. Both D3 and D2 should be lit.
@@ -194,7 +228,7 @@ export default function QuickStart() {
             If you can't find the answers you need, then you can contact us via a GitHub issue or the website.
           </p>
         </Section>
-        <Section title="🤖 Software and License">
+        <Section title="🤖 Software and License" id="software">
           <p className="mb-4">
             All the code for the firmware and the design files for the PCBs are completely open source and licensed under the GNU General Public License v3.0. This program is distributed WITHOUT ANY WARRANTY; see the licence for details.
           </p>
@@ -210,7 +244,7 @@ export default function QuickStart() {
             "ZX Spectrum" is a trademark of Amstrad/Sky; used for descriptive purposes only.
           </p>
         </Section>
-        <Section title="♻️ Disposal and Recycling">
+        <Section title="♻️ Disposal and Recycling" id="disposal">
           <div className="flex flex-row gap-4">
           <div className="flex-grow">
             <p className="mb-4">
@@ -229,7 +263,7 @@ export default function QuickStart() {
             <img src={weee} alt="WEEE" className="max-w-full h-[200px] rounded-lg" />
           </div>
         </Section>
-        <Section title="✅ CE/UKCA Compliance">
+        <Section title="✅ CE/UKCA Compliance" id="compliance">
           <div className="flex flex-row gap-4">
             <div className="flex-grow">
               <p className="mb-4">
@@ -256,12 +290,12 @@ export default function QuickStart() {
             </div>
           </div>
         </Section>
-        <Section title="⚠️ Safety Information">
+        <Section title="⚠️ Safety Information" id="safety">
           <p className="mb-4">
             For full multi-lingual safety information, please refer page 11 of the <a href="/docs/quick-start.pdf" target="_blank" className="text-indigo-400 hover:text-indigo-300">quick start guide</a>.
           </p>
         </Section>
-        <Section title="🛠️ Warranty & Returns">
+        <Section title="🛠️ Warranty & Returns" id="warranty">
           <p className="mb-4">
            Please refer page 14 of the <a href="/docs/quick-start.pdf" target="_blank" className="text-indigo-400 hover:text-indigo-300">quick start guide</a>.
           </p>
