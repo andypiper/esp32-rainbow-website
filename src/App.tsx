@@ -17,6 +17,7 @@ import TapToZ80 from './pages/TapToZ80'
 import VideoToAvi from './pages/VideoToAvi'
 import BinaryToHeader from './pages/BinaryToHeader'
 import FileBrowserPage from './pages/FileBrowser'
+import Compliance from './pages/Compliance'
 
 // Create a new component to handle route changes and layout
 function Layout() {
@@ -57,6 +58,7 @@ function Layout() {
           <Route path="/tools/video-to-avi" element={<VideoToAvi />} />
           <Route path="/tools/binary-to-header" element={<BinaryToHeader />} />
           <Route path="/file-browser" element={<FileBrowserPage />} />
+          <Route path="/compliance" element={<Compliance />} />
           <Route path="*" element={
             <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
               <h1 className="text-4xl font-bold text-gray-100">404 - Page Not Found</h1>
