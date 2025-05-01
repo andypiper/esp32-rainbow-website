@@ -74,7 +74,7 @@ const navigationItems: NavItem[] = [
       },
       {
         to: '/docs',
-        label: 'Documentation',
+        label: 'Quick Start',
         id: 'docs',
         icon: (
           <path 

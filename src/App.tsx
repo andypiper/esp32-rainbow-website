@@ -4,7 +4,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import FAQ from './pages/FAQ'
 import Firmware from './pages/Firmware'
-import Docs from './pages/Docs'
+import QuickStart from './pages/QuickStart'
 import GitHub from './pages/GitHub'
 import Emulator from './pages/Emulator'
 import Games from './pages/Games'
@@ -46,7 +46,7 @@ function Layout() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/docs" element={<Docs />} />
+          <Route path="/docs" element={<QuickStart />} />
           <Route path="/firmware" element={<Firmware />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/games" element={<Games />} />
