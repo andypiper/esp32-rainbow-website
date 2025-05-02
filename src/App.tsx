@@ -18,6 +18,7 @@ import VideoToAvi from './pages/VideoToAvi'
 import BinaryToHeader from './pages/BinaryToHeader'
 import FileBrowserPage from './pages/FileBrowser'
 import Compliance from './pages/Compliance'
+import Pinout from './pages/Pinout'
 
 // Create a new component to handle route changes and layout
 function Layout() {
@@ -48,6 +49,7 @@ function Layout() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/docs" element={<QuickStart />} />
           <Route path="/firmware" element={<Firmware />} />
+          <Route path="/pinout" element={<Pinout />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/games" element={<Games />} />
           <Route path="/games/letter/:letter" element={<Games />} />
