@@ -104,29 +104,21 @@ export default function QuickStart() {
           </p>
         </Section>
         <Section title="🔌 Powering the device" id="power">
-          <div className="flex flex-row gap-2">
-            <div>
-              <p className="mb-4">
-                Connect a USB-C cable to the device. Use a 5V USB power adapter rated at 1A or higher.
-              </p>
-              <p className="mb-4 mt-4">
-                To power on, slide the switch to the left after connecting the USB cable.
-              </p>
-            </div>
-            <img src={powerConnection} alt="Power Connection" className="max-w-full h-auto rounded-lg" />
-          </div>
-          <div className="flex flex-row gap-2">
-            <img src={powerLeds} alt="ESP32 Rainbow System Overview" className="max-w-full md:max-w-[300px] h-auto rounded-lg" />
-            <div>
-              <p className="mb-4">
-                There are two indicator LEDs on the device:
-              </p>
-              <ul className="list-disc list-inside pl-4 space-y-2 mb-4">
-                <li>D3 indicates 5V power is available from the USB-C port</li>
-                <li>D2 indicates that the 3V3 power supply is active</li>
-              </ul>
-            </div>
-          </div>
+          <p className="mb-4">
+            Connect a USB-C cable to the device. Use a 5V USB power adapter rated at 1A or higher.
+          </p>
+          <p className="mb-4">
+            To power on, slide the switch to the left after connecting the USB cable.
+          </p>
+          <img src={powerConnection} alt="Power Connection" className="max-w-full h-auto rounded-lg" />
+          <p className="mb-4  mt-4">
+            There are two indicator LEDs on the device:
+          </p>
+          <ul className="list-disc list-inside pl-4 space-y-2 mb-4">
+            <li>D3 indicates 5V power is available from the USB-C port</li>
+            <li>D2 indicates that the 3V3 power supply is active</li>
+          </ul>
+          <img src={powerLeds} alt="Power LEDs" className="max-w-full h-auto rounded-lg" />
         </Section>
         <Section title="🎮 Loading Games" id="games">
           <p className="mb-4">
@@ -150,11 +142,11 @@ export default function QuickStart() {
           <p className="mb-4">
             The main menu is controlled by the Spectrum cursor keys – "5"(⬅), "6"(⬇) and "7"(⬆). "6" and "7" are used to move up and down, "ENTER" to pick the menu option, and "5" to go back up the menu hierarchy.
           </p>
-          <img src={deviceControls} alt="Device Controls" className="max-w-full mb-4 mt-4 md:max-w-[300px] h-auto rounded-lg" />
+          <img src={deviceControls} alt="Device Controls" className="max-w-full mb-4 mt-4 h-auto rounded-lg" />
           <p className="mb-4">
             During gameplay, you can push the "BOOT" button to enter a special mode.
           </p>
-          <img src={specialMode} alt="Special Mode" className="max-w-full mb-4 mt-4 md:max-w-[300px] h-auto rounded-lg" />
+          <img src={specialMode} alt="Special Mode" className="max-w-full mb-4 mt-4 h-auto rounded-lg" />
           <p className="mb-4">
             In this mode, you can:
           </p>
