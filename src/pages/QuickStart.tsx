@@ -198,7 +198,7 @@ export default function QuickStart() {
           <ul className="list-disc list-inside pl-4 space-y-1">
             <li>D3 not lit? Check the USB-C power supply.</li>
             <li>D2 not lit? Check that your power supply is providing 5V and has sufficient current.</li>
-            <li>D3 and D2 are lit: make sure the display ribbon cable is properly seated in the socket on the PCB.</li>
+            <li>D3 and D2 are lit (which means the board is powered): make sure the display ribbon cable is properly seated in the socket on the PCB.</li>
           </ul>
           <h4 className="text-lg font-semibold text-gray-100 mb-4">SD card not detected?</h4>
           <p className="mb-4">
