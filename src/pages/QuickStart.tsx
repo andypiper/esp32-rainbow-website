@@ -134,7 +134,7 @@ export default function QuickStart() {
             The ESP32 Rainbow can use the common game formats: TAP, TZX, Z80 and SNA.
           </p>
           <p className="mb-4">
-            For optimal game loading performance, we recommend converting TAP and TZX files to Z80 format using the <a href="/tap-to-z80" className="text-indigo-400 hover:text-indigo-300">utility provided on this website</a>.
+            For optimal game loading performance, we recommend converting TAP and TZX files to Z80 format using the <a href="/tools/tap-to-z80" className="text-indigo-400 hover:text-indigo-300">utility provided on this website</a>.
           </p>
           <img src={loadingGames} alt="Loading Games" className="max-w-full h-auto rounded-lg" />
         </Section>
