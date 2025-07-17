@@ -2,7 +2,10 @@
 
 A comprehensive web-based interface for the ESP32 Rainbow hardware - a ZX Spectrum clone built using the ESP32 microcontroller. This website provides file management, real-time communication, and development tools specifically designed for the ESP32 Rainbow.
 
-🌐 **Live Site**: [https://esp32rainbow.com](https://esp32rainbow.com)
+🌐 **Live Site**: [https://esp32rainbow.com](https://esp32rainbow.com)  
+🔧 **Firmware Source**: [https://github.com/atomic14/esp32-zxspectrum](https://github.com/atomic14/esp32-zxspectrum)  
+🔩 **Hardware Design**: [https://github.com/atomic14/esp32-zxspectrum-hardware](https://github.com/atomic14/esp32-zxspectrum-hardware)  
+🛒 **Where can I get one?**: [https://www.crowdsupply.com/atomic14/esp32-rainbow](https://www.crowdsupply.com/atomic14/esp32-rainbow)
 
 ## Overview
 
