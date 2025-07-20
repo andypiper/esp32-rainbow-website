@@ -8,7 +8,7 @@ export const faqs: FAQ[] = [
     question: "Where can I get one?",
     answer: (
       <div>
-        ESP32 Rainbow is available for purchase on Crowd Supply. 
+        ESP32 Rainbow is available for purchase on Crowd Supply.
         <div className="mt-3">
           <a
             href="https://www.crowdsupply.com/atomic14/esp32-rainbow"
@@ -41,11 +41,11 @@ export const faqs: FAQ[] = [
     question: "Is it open source?",
     answer: (
       <div>
-        Yes! ESP32 Rainbow is open hardware available under the GNU General Public License (GPL). 
+        Yes! ESP32 Rainbow is open hardware available under the GNU General Public License (GPL).
         All project files are available on GitHub in two repositories:
         <ul className="mt-3 space-y-2">
           <li>
-            <a 
+            <a
               href="https://github.com/atomic14/esp32-zxspectrum"
               target="_blank"
               rel="noopener noreferrer"
@@ -58,7 +58,7 @@ export const faqs: FAQ[] = [
             </a>
           </li>
           <li>
-            <a 
+            <a
               href="https://github.com/atomic14/esp32-zxspectrum-hardware"
               target="_blank"
               rel="noopener noreferrer"
@@ -80,7 +80,25 @@ export const faqs: FAQ[] = [
   },
   {
     question: "Where can I get support?",
-    answer: "Support is available through detailed documentation and getting started guides on GitHub. We're also setting up a dedicated Discord server for the ESP32 Rainbow community."
+    answer: (
+      <div>Support is available through detailed documentation and getting started guides. There are{' '}
+      <a
+          href="https://github.com/atomic14/esp32-zxspectrum/discussions"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300"
+      >
+          Discussions
+      </a> and a <a
+          href="https://github.com/atomic14/esp32-zxspectrum/wiki"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300"
+      >
+          Wiki
+      </a> on GitHub. We're also setting up a dedicated Discord server for the ESP32 Rainbow community.
+      </div>
+    )
   },
   {
     question: "How is it manufactured?",
@@ -91,7 +109,7 @@ export const faqs: FAQ[] = [
     answer: (
       <div>
         The best way to stay updated is to subscribe to our newsletter at{' '}
-        <a 
+        <a
           href="https://esp32zx.substack.com"
           target="_blank"
           rel="noopener noreferrer"
@@ -99,8 +117,13 @@ export const faqs: FAQ[] = [
         >
           esp32zx.substack.com
         </a>
-        . We regularly share development updates, new features, and community highlights.
+        . We regularly share development updates, new features, and community highlights. You may also want to join in the       <a
+          href="https://github.com/atomic14/esp32-zxspectrum/discussions"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300"
+        >Discussions on GitHub</a>.
       </div>
     )
   }
-] 
+]
