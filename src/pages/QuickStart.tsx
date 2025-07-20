@@ -194,12 +194,12 @@ export default function QuickStart() {
           <h4 className="text-lg font-semibold text-gray-100 mb-4">No display?</h4>
           <p className="mb-4">
             Check the power indicator LEDs. Both D3 and D2 should be lit.
-          </p>
           <ul className="list-disc list-inside pl-4 space-y-1">
             <li>D3 not lit? Check the USB-C power supply.</li>
             <li>D2 not lit? Check that your power supply is providing 5V and has sufficient current.</li>
             <li>D3 and D2 are lit (which means the board is powered): make sure the display ribbon cable is properly seated in the socket on the PCB.</li>
           </ul>
+	  </p>
           <h4 className="text-lg font-semibold text-gray-100 mb-4">SD card not detected?</h4>
           <p className="mb-4">
             Check the card is properly inserted and formatted as FAT32. Make sure the card is high quality. Be aware that there are many counterfeit SD cards on the market.
@@ -217,8 +217,8 @@ export default function QuickStart() {
           </p>
           <h4 className="text-lg font-semibold text-gray-100 mb-4">Still need help?</h4>
           <p>
-            If you can't find the answers you need, then you can contact us via a GitHub issue or the website.
-          </p>
+            The community is creating additional documentation on <a href="https://github.com/atomic14/esp32-zxspectrum/wiki" className="text-indigo-400 hover:text-indigo-300">the GitHub wiki</a>. If you can't find the answers you need, then you can contact us via <a href="https://github.com/atomic14/esp32-zxspectrum/issues" className="text-indigo-400 hover:text-indigo-300">GitHub Issues</a> and <a href="https://github.com/atomic14/esp32-zxspectrum/discussions" className="text-indigo-400 hover:text-indigo-300">Discussions</a>, or the website. 
+  </p>
         </Section>
         <Section title="🤖 Software and License" id="software">
           <p className="mb-4">
