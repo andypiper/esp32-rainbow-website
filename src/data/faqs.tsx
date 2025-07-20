@@ -96,7 +96,7 @@ export const faqs: FAQ[] = [
           className="text-indigo-400 hover:text-indigo-300"
       >
           Wiki
-      </a> on GitHub. We're also setting up a dedicated Discord server for the ESP32 Rainbow community.
+      </a> on GitHub.
       </div>
     )
   },
