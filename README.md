@@ -1,3 +1,5 @@
+[![CI](https://github.com/atomic14/esp32-rainbow-website/actions/workflows/ci.yml/badge.svg)](https://github.com/atomic14/esp32-rainbow-website/actions/workflows/ci.yml)
+
 # ESP32 Rainbow Website
 
 A comprehensive web-based interface for the ESP32 Rainbow hardware - a ZX Spectrum clone built using the ESP32 microcontroller. This website provides file management, real-time communication, and development tools specifically designed for the ESP32 Rainbow.

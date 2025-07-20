@@ -262,7 +262,7 @@ export default function QuickStart() {
                 Directive: 2014/30/EU (Electromagnetic Compatibility Directive)
               </p>
               <p className="mb-4">
-                UK Regulations: Electromagnetic Compatibility Regulations 2016.
+                UK Regulations: Electromagnetic Compatibility Regulations 2016.
               </p>
               <p className="mb-4">
                 CE and UKCA marks are shown on the back page of the <a href="/docs/quick-start.pdf" target="_blank" className="text-indigo-400 hover:text-indigo-300">quick start guide</a>.
